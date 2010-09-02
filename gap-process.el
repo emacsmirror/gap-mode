@@ -62,7 +62,7 @@
 ;;! v1.06 -
 ;;! * Fixed bug in gap-ident-around-point that caused non-word characters
 ;;!   to end up in the extracted identifier.
-;;! v1.05 - 
+;;! v1.05 -
 ;;! * Added C-l to call comint-previous-similar-input, which is almost
 ;;!   the same as the GAP C-l previous input command. Moved recenter
 ;;!   to C-c C-l to make room.
@@ -73,7 +73,7 @@
     ;;"-l" "/usr/local/algebra/gap3.2/lib/"
     "-m" "2m")
   "* The list of initial GAP options.")
-(defvar gap-prompt-regexp "\\(.*\\(gap\\|brk\\)>\\|^>\\) *" 
+(defvar gap-prompt-regexp "\\(.*\\(gap\\|brk\\)>\\|^>\\) *"
   "* Regexp used by Newline command in GAP mode to match prompt.")
 (defvar gap-directory nil
   "* If this is non-nil, change to this directory before running GAP. Otherwise
@@ -145,7 +145,7 @@ sending current buffer if prefix arg."
    (set-process-filter proc 'gap-startfile-filter)
    (comint-send-string proc "\n")))
     (switch-to-buffer gap-process-buffer)))
- 
+
 (defun gap-process-mode ()
   "Major mode for interacting with Gap. Provides special support for the help
 system (hit ? anytime for help on symbol under point) and completion (TAB).
@@ -154,7 +154,7 @@ the ? by C-q to insert a ? in the buffer instead of callig help.
   ?     gap-help
   TAB   gap-complete
   C-l   comint-previous-similar-input  (C-c C-l for recenter)"
-  
+
   (interactive)
   (comint-mode)
   (make-local-variable 'comint-prompt-regexp)
@@ -328,7 +328,7 @@ TABs to GAP to get a full list of the completions."
  (progn
    ;;  delete partial identifier from input line
    (delete-backward-char (length gap-completion-ident))
-    
+
    ;;  ask for completion and clear input line
    (setq gap-send-state 'completing)
    (process-send-string process (concat gap-completion-ident
@@ -354,7 +354,7 @@ TABs to GAP to get a full list of the completions."
        (buffer-substring beg (point))))))
 (defun gap-help (topic arg)
   "Display GAP help about TOPIC in the *Help* buffer."
-  (interactive 
+  (interactive
    (let ((enable-recursive-minibuffers t)
   (try-word (gap-ident-around-point))
   val)
@@ -399,7 +399,7 @@ containing initial standard input to process."
     (let ((pos 0))
       (setq pos (string-match (substring strip 0 1) string pos))
       (while (not (eq pos nil))
- (setq string (concat (substring string 0 pos) 
+ (setq string (concat (substring string 0 pos)
         (substring string (+ pos 1))))
  (setq pos (string-match (substring strip 0 1) string pos)))
       (setq strip (substring strip 1))))
@@ -415,7 +415,7 @@ is visible, try to keep the end on screen."
       (goto-char (process-mark proc))
       (insert-before-markers str))
     (set-buffer obuf)))
- 
+
 ;; Local Variables:
 ;; mode:Emacs-Lisp
 ;; mode:outline-minor
@@ -425,3 +425,4 @@ is visible, try to keep the end on screen."
 ;; outline-regexp:"^\\(;;!\\|(def\\)"
 ;; eval: (hide-body)
 ;; End:
+

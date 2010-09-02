@@ -144,7 +144,7 @@ fill GAP comments")
 indent region command is run.")
 
 (defvar gap-tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44
-			      48 52 56 60 64 68 72 74 78)
+                              48 52 56 60 64 68 72 74 78)
   "* Gap-mode tab-stop-list.  Note this is effectively only used in the
 indentation of comments---all gap code indentation depends on the
 variable gap-indent-step.")
@@ -235,14 +235,14 @@ Variables: (with default given)
         in some way.
 
 See also the documentation for the variables:
-  gap-pre-return-indent  
-  gap-post-return-indent 
-  gap-indent-comments                
-  gap-indent-comments-flushleft      
-  gap-auto-indent-comments           
+  gap-pre-return-indent
+  gap-post-return-indent
+  gap-indent-comments
+  gap-indent-comments-flushleft
+  gap-auto-indent-comments
   gap-indent-brackets
   gap-bracket-threshold
-  gap-tab-stop-list      
+  gap-tab-stop-list
   gap-mode-hook
 
 and documentation for the functions:
@@ -287,17 +287,17 @@ end;"
   (save-excursion
     (save-restriction
       (narrow-to-region (beg-of-line-from-point p1)
-			(end-of-line-from-point p2))
+                        (end-of-line-from-point p2))
       (goto-char (point-min))
       (let ((first t))
-	(while (or first
-		   (re-search-forward "[\n\C-m]" nil t))
-	  (setq first nil)
-	  (cond ((= arg 1)
-		 (insert "#"))
-		((and (> arg 1)
-		      (looking-at "#"))
-		 (delete-char 1))))))))
+        (while (or first
+                   (re-search-forward "[\n\C-m]" nil t))
+          (setq first nil)
+          (cond ((= arg 1)
+                 (insert "#"))
+                ((and (> arg 1)
+                      (looking-at "#"))
+                 (delete-char 1))))))))
 
 (defun gap-newline-command ()
   (interactive)
@@ -307,8 +307,8 @@ end;"
   (forward-char 1)
   (if gap-post-return-indent
       (progn
-	(gap-indent-line)
-	(back-to-indentation))))
+        (gap-indent-line)
+        (back-to-indentation))))
 
 (defun gap-indent-line ()
   "Gap intelligent indentation of code"
@@ -316,11 +316,11 @@ end;"
   (save-excursion
     (back-to-indentation)
     (let ((cur (current-column))
-	  (ind (gap-calculate-indent)))
+          (ind (gap-calculate-indent)))
       (if (= cur ind)
-	  nil
-	(indent-to-left-margin)
-	(indent-to ind))))
+          nil
+        (indent-to-left-margin)
+        (indent-to ind))))
   (if (= (current-column) 0)
       (back-to-indentation)))
 
@@ -329,33 +329,33 @@ end;"
 If prefix arg, then just indent this line to column given by argument.
 If line is a comment starting in column 1 then do nothing.
 If point is immediately following a comment character (#) then call
-tab-to-tab-stop, which moves comment up to four character right (default).
+tab-to-tab-stop, which moves comment up to four characters right (default).
 Otherwise indent the line intelligently by calling gap-indent-line"
-    
+
   (interactive "P")
   (if col
       (progn
-	(back-to-indentation)
-	(indent-to col))
+        (back-to-indentation)
+        (indent-to col))
     (if (and (not gap-indent-comments-flushleft)
-	     (save-excursion
-	       (beginning-of-line)
-	       (looking-at "#")))
-	nil
+             (save-excursion
+               (beginning-of-line)
+               (looking-at "#")))
+        nil
       (if (or (and (eq gap-indent-comments t)
-		   (gap-point-in-comment))
-	      (and (numberp gap-indent-comments)
-		   (= (char-after (- (point) gap-indent-comments)) ?#)))
-	  (progn
-	    (save-excursion
-	      (beginning-of-line)
-	      (while (not (gap-point-in-comment))
-		(re-search-forward "#"))
-	      (forward-char -1)
-	      (to-tab-stop)
-	      (message (format "column %d" (current-column)))
-	      (forward-char 1)))
-	(gap-indent-line)))))
+                   (gap-point-in-comment))
+              (and (numberp gap-indent-comments)
+                   (= (char-after (- (point) gap-indent-comments)) ?#)))
+          (progn
+            (save-excursion
+              (beginning-of-line)
+              (while (not (gap-point-in-comment))
+                (re-search-forward "#"))
+              (forward-char -1)
+              (to-tab-stop)
+              (message (format "column %d" (current-column)))
+              (forward-char 1)))
+        (gap-indent-line)))))
 
 
 (defun gap-format-region ()
@@ -365,21 +365,21 @@ Otherwise indent the line intelligently by calling gap-indent-line"
   ;; fill paragraph instead of indenting region.
   (if (and gap-fill-if-gin
            (boundp 'gin-mode)
-	   gin-mode 
-	   (gap-point-in-comment))
+           gin-mode
+           (gap-point-in-comment))
       (fill-paragraph nil)
     (let (ret p)
       (if (> (point) (mark))
-	  (exchange-point-and-mark))
+          (exchange-point-and-mark))
       (setq p (point))
       (gap-indent-line)
       (while (re-search-forward "[\n\C-m]" (end-of-line-from-point (mark)) t)
-	(if (gap-looking-at "^[ \t]*[\n\C-m]")
-	    (indent-to-left-margin)
-	  (if (and (not gap-auto-indent-comments)
-		   (gap-looking-at "^[ \t]*#"))
-	      nil
-	    (gap-indent-line))))
+        (if (gap-looking-at "^[ \t]*[\n\C-m]")
+            (indent-to-left-margin)
+          (if (and (not gap-auto-indent-comments)
+                   (gap-looking-at "^[ \t]*#"))
+              nil
+            (gap-indent-line))))
       (goto-char p)
       (exchange-point-and-mark))))
 
@@ -392,8 +392,8 @@ Otherwise indent the line intelligently by calling gap-indent-line"
   (gap-format-region))
 
 
-(defun gap-insert-local-variables () 
-"Insert a local variable statement for the current function.  
+(defun gap-insert-local-variables ()
+  "Insert a local variable statement for the current function.
 
 The local statement is inserted before the line the cursor is on.  This
 function assumes that a variable is local if occurs on the left-hand side
@@ -422,15 +422,15 @@ statement for that function.
           (error "bad beginning of function"))
       (goto-char (match-end 0))
       (while (looking-at " *\\([a-z][a-z0-9_]*\\),?")
-        (setq formal (append formal 
+        (setq formal (append formal
                              (list (buffer-substring
                                     (match-beginning 1) (match-end 1)))))
         (goto-char (match-end 0)))
-      (while (gap-searcher 're-search-forward 
-                           (concat 
+      (while (gap-searcher 're-search-forward
+                           (concat
                             "\\(" "\\(^\\|;\\) *\\([a-z][a-z0-9_]*\\) *:= *"
                             "\\|" "\\(^\\|;\\) *for +\\([a-z][a-z0-9_]*\\)"
-                                  " +in\\>" "\\)")
+                            " +in\\>" "\\)")
                            p2 t '(match-beginning 0))
         (cond ((looking-at "\\(^\\|;\\) *\\([a-z][a-z0-9_]*\\) *:= *")
                (setq name (buffer-substring (match-beginning 2) (match-end 2)))
@@ -438,7 +438,7 @@ statement for that function.
                (if (looking-at "function *(")
                    (progn
                      (goto-char (match-end 0))
-                     (if (not (gap-find-matching "\\<function\\>" 
+                     (if (not (gap-find-matching "\\<function\\>"
                                                  "\\<end\\>" nil t t))
                          (error "No local function end?!")))))
               ((looking-at "\\(^\\|;\\) *for +\\([a-z][a-z0-9_]*\\) +in\\>")
@@ -479,12 +479,12 @@ function. Prompts for name with default the identifier at the point. If
 there is no local variable statement yet, signals error."
   (interactive
    (let ((enable-recursive-minibuffers t)
-	 (try-word (gap-ident-around-point))
-	 val)
+         (try-word (gap-ident-around-point))
+         val)
      (setq val (read-string (format "Variable name (default %s): "
-				    try-word)))
+                                    try-word)))
      (if (string-equal val "")
-	 (setq val try-word))
+         (setq val try-word))
      (list val)))
   (save-excursion
     (let ((pos (point)))
@@ -492,10 +492,10 @@ there is no local variable statement yet, signals error."
       (goto-char (match-end 0))
       (gap-find-matching "\\<function\\>" "\\<local\\>" "\\<function\\>" t)
       (if (not (looking-at "local"))
-	  (error "No local statement. Add one first.")
-	(gap-search-forward-end-stmt pos 1 'end)
-	(forward-char -1)
-	(insert ", " ident)))))
+          (error "No local statement. Add one first.")
+        (gap-search-forward-end-stmt pos 1 'end)
+        (forward-char -1)
+        (insert ", " ident)))))
 
 (defun gap-insert-debug-print ()
   "Insert a print statement for debuggin purposes."
@@ -511,7 +511,7 @@ there is no local variable statement yet, signals error."
     (insert gap-insert-debug-name "( \""
             (format gap-insert-debug-string name) "\" );")
     (backward-char 3)))
-		 
+
 
 (defun gap-completion (&optional full)
   "Try to complete word at point. Will simply call dynamic abbreviation command
@@ -529,39 +529,39 @@ get a gap completion of the word."
 
 (setq gap-end-of-statement
       (concat "\\(;\\|\\<then\\>\\|\\<else\\>\\|\\<do\\>\\|"
-	      "\\<repeat\\>\\|\\<function\\>.*(.*)\\)"))
+              "\\<repeat\\>\\|\\<function\\>.*(.*)\\)"))
 
 (setq gap-increment-indentation-regexp (concat "^[ \t]*\\("
-					       "if\\>"
-					       "\\|else\\>"
-					       "\\|elif\\>"
-					       "\\|for\\>"
-					       "\\|while\\>"
-					       "\\|repeat\\>"
-					       "\\|.*\\<function\\>"
-					       "\\)"))
+                                               "if\\>"
+                                               "\\|else\\>"
+                                               "\\|elif\\>"
+                                               "\\|for\\>"
+                                               "\\|while\\>"
+                                               "\\|repeat\\>"
+                                               "\\|.*\\<function\\>"
+                                               "\\)"))
 
 (setq gap-decrement-indentation-regexp (concat "^[ \t]*\\("
-					       "fi\\>"
-					       "\\|od\\>"
-					       "\\|else\\>"
-					       "\\|elif\\>"
-					       "\\|until\\>"
-					       "\\|end\\>"
-					       "\\)"))
+                                               "fi\\>"
+                                               "\\|od\\>"
+                                               "\\|else\\>"
+                                               "\\|elif\\>"
+                                               "\\|until\\>"
+                                               "\\|end\\>"
+                                               "\\)"))
 
 
 (defvar gap-continued-special-list
-      (list
-       ;; '( REGEXP  N  OFFSET  TERMINATE)
-       '("#!#" nil 0 t)
-       '("\\<local\\>[ \t\n]*\\([^ \t\n]\\)" 1 0 nil)
-       '("\\<return\\>[ \t\n]*\\([^ \t\n]\\)" 1 0 t)
-       ;;'(":=[ \t\n]*function[ \t\n]*(.*)" nil 4 t)
-       '(":=[ \t\n]*\\([^ \t\n]\\)" 1 0 nil)
-       '("\\<if\\>[ \t\n]*\\([^ \t\n]\\)" 1 0 nil)
-       '("\\<until[ \t\n]*\\([^ \t\n]\\)" 1 0 nil))
-      "
+  (list
+   ;; '( REGEXP  N  OFFSET  TERMINATE)
+   '("#!#" nil 0 t)
+   '("\\<local\\>[ \t\n]*\\([^ \t\n]\\)" 1 0 nil)
+   '("\\<return\\>[ \t\n]*\\([^ \t\n]\\)" 1 0 t)
+   ;;'(":=[ \t\n]*function[ \t\n]*(.*)" nil 4 t)
+   '(":=[ \t\n]*\\([^ \t\n]\\)" 1 0 nil)
+   '("\\<if\\>[ \t\n]*\\([^ \t\n]\\)" 1 0 nil)
+   '("\\<until[ \t\n]*\\([^ \t\n]\\)" 1 0 nil))
+  "
 Determines special continued lines and indentation for them.
 For each element of this list: search forward (from start of line initially
 and from last match otherwise) for REGEXP entry. If second entry is nil, jump
@@ -572,52 +572,52 @@ If TERMINATE is t, then don't check any later ones if matched.")
 
 
 (defun gap-ident-around-point ()
- "Return the identifier around the point as a string."
- (save-excursion
-   (let (beg)
-     (if (not (looking-at "\\(\\>\\|\\w\\)"))
-	 ""
-       (re-search-backward "\\<" nil t)
-       (setq beg (point))
-       (re-search-forward "\\>" nil t)
-       (buffer-substring beg (point))))))
+  "Return the identifier around the point as a string."
+  (save-excursion
+    (let (beg)
+      (if (not (looking-at "\\(\\>\\|\\w\\)"))
+          ""
+        (re-search-backward "\\<" nil t)
+        (setq beg (point))
+        (re-search-forward "\\>" nil t)
+        (buffer-substring beg (point))))))
 
 (defun gap-point-in-comment-string ()
   (save-excursion
     (let* ((p (point))
-	   (line (buffer-substring (beg-of-line-from-point) p)))
+           (line (buffer-substring (beg-of-line-from-point) p)))
       (string-match "\\([^\\\\]\"\\|#\\)"
-		    (gap-strip-line-of-strings line)))))
-      
+                    (gap-strip-line-of-strings line)))))
+
 
 (defun gap-point-in-comment ()
   (save-excursion
     (let* ((p (point))
-	   (line (buffer-substring (beg-of-line-from-point) p)))
+           (line (buffer-substring (beg-of-line-from-point) p)))
       (string-match "^[^\"]*#" (gap-strip-line-of-strings line)))))
 
 
 (defun gap-strip-line-of-strings (line)
   (while (string-match "[^\\\\]\\(\"\"\\|\"[^\"]*[^\\\\]\"\\)" line)
     (setq line (concat (substring line 0 (match-beginning 1))
-		       (substring line (match-end 1)))))
+                       (substring line (match-end 1)))))
   line)
 
 (defun gap-strip-line-of-brackets (line)
   "currently not used."
   (while (or (string-match "([^()]*)" line)
-	     (string-match "\\[[^\\[\\]]*\\]" line)
-	     (string-match "{[^{}]*}" line))
+             (string-match "\\[[^\\[\\]]*\\]" line)
+             (string-match "{[^{}]*}" line))
     (setq line (concat (substring line 0 (match-beginning 0))
-		       (substring line (match-end 0)))))
+                       (substring line (match-end 0)))))
   line)
 
 (defun gap-strip-line-of-comments (line)
   (while (string-match "#.*[\n\C-m]" line)
     (setq line (concat (substring line 0 (match-beginning 0))
-		       (substring line (match-end 0)))))
+                       (substring line (match-end 0)))))
   line)
-  
+
 
 (defun gap-strip-strings-comments (stmt)
   (gap-strip-line-of-comments
@@ -627,30 +627,30 @@ If TERMINATE is t, then don't check any later ones if matched.")
 (defun gap-skip-forward-to-token (limit ret)
   "Skip forward from point to first character that is not in a comment."
   (while (and (if (not (re-search-forward "[^ \t\n\C-m]" limit ret))
-		  nil
-		(goto-char (match-beginning 0))
-		t)
-	      (if (looking-at "#")
-		  (re-search-forward "[\n\C-m]" limit ret)
-		nil))))
-  
+                  nil
+                (goto-char (match-beginning 0))
+                t)
+              (if (looking-at "#")
+                  (re-search-forward "[\n\C-m]" limit ret)
+                nil))))
+
 
 (defun gap-debug-inform (base ind prev this &optional note)
   (message
    (concat (if base (format "Base:%d  " base))
-	   (if ind (format "Ind:%d  " ind))
-	   (if prev (format "Prev:|%s|  "
-			    (if (< (length prev) 20)
-				prev
-			      (concat (substring prev 0 9) "..."
-				      (substring prev -9)))))
-	   (if this (format "This:|%s|"
-			    (if (< (length this) 20)
-				this
-			      (concat (substring this 0 9) "..."
-				      (substring this -9)))))
-	   (if note (format "  (%s)" note))
-	   )))
+           (if ind (format "Ind:%d  " ind))
+           (if prev (format "Prev:|%s|  "
+                            (if (< (length prev) 20)
+                                prev
+                              (concat (substring prev 0 9) "..."
+                                      (substring prev -9)))))
+           (if this (format "This:|%s|"
+                            (if (< (length this) 20)
+                                this
+                              (concat (substring this 0 9) "..."
+                                      (substring this -9)))))
+           (if note (format "  (%s)" note))
+           )))
 
 
 
@@ -684,9 +684,9 @@ If TERMINATE is t, then don't check any later ones if matched.")
 (defun gap-looking-at (s)
   (save-excursion
     (if (eq (substring s 0 1) "^")
-	(progn
-	  (setq s (concat "[\n\C-m]" (substring s 1)))
-	  (forward-char -1)))
+        (progn
+          (setq s (concat "[\n\C-m]" (substring s 1)))
+          (forward-char -1)))
     (looking-at s)))
 
 (defun gap-back-to-indentation ()
@@ -705,8 +705,8 @@ If TERMINATE is t, then don't check any later ones if matched.")
     (while (and tabs (>= (current-column) (car tabs)))
       (setq tabs (cdr tabs)))
     (if tabs
-	(insert-before-markers
-	 (make-string (- (car tabs) (current-column)) 32))
+        (insert-before-markers
+         (make-string (- (car tabs) (current-column)) 32))
       (insert ? ))))
 
 
@@ -720,7 +720,7 @@ If TERMINATE is t, then don't check any later ones if matched.")
 ;;    if ... then
 ;;    else
 ;;    elif .. then
-;;    fi; 
+;;    fi;
 
 
 ;; Gap group beginning-end matching
@@ -733,30 +733,30 @@ of 'do', 'od', 'if', 'elif', 'else', 'fi', 'function', 'end'. If it is,
 jump to the matching delimiter."
   (interactive)
   (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1) t)
-	((looking-at "\\s\)") (forward-char 1) (backward-list 1) t)
-	((not (gap-point-in-comment-string))
-	 (cond ((looking-at "\\<if\\>")
-		(goto-char (match-end 0))
-		(gap-find-matching "\\<if\\>" "\\<fi\\>"
-				   "\\<\\(else\\|elif\\)\\>" t))
-	       ((looking-at "\\<fi\\>")
-		(gap-find-matching "\\<if\\>" "\\<fi\\>" nil -1))
-	       ((looking-at "\\<\\(else\\|elif\\)\\>")
-		(goto-char (match-end 0))
-		(gap-find-matching "\\<if\\>" "\\<fi\\>"
-				   "\\<\\(else\\|elif\\)\\>" t))
-	       ((looking-at "\\<do\\>")
-		(goto-char (match-end 0))
-		(gap-find-matching "\\<do\\>" "\\<od\\>" nil t))
-	       ((looking-at "\\<od\\>")
-		(gap-find-matching "\\<do\\>" "\\<od\\>" nil -1))
-	       ((looking-at "\\<function\\>")
-		(goto-char (match-end 0))
-		(gap-find-matching "\\<function\\>" "\\<end\\>" nil t))
-	       ((looking-at "\\<end\\>")
-		(gap-find-matching "\\<function\\>" "\\<end\\>" nil -1))
-	       (t nil)))
-	(t nil)))
+        ((looking-at "\\s\)") (forward-char 1) (backward-list 1) t)
+        ((not (gap-point-in-comment-string))
+         (cond ((looking-at "\\<if\\>")
+                (goto-char (match-end 0))
+                (gap-find-matching "\\<if\\>" "\\<fi\\>"
+                                   "\\<\\(else\\|elif\\)\\>" t))
+               ((looking-at "\\<fi\\>")
+                (gap-find-matching "\\<if\\>" "\\<fi\\>" nil -1))
+               ((looking-at "\\<\\(else\\|elif\\)\\>")
+                (goto-char (match-end 0))
+                (gap-find-matching "\\<if\\>" "\\<fi\\>"
+                                   "\\<\\(else\\|elif\\)\\>" t))
+               ((looking-at "\\<do\\>")
+                (goto-char (match-end 0))
+                (gap-find-matching "\\<do\\>" "\\<od\\>" nil t))
+               ((looking-at "\\<od\\>")
+                (gap-find-matching "\\<do\\>" "\\<od\\>" nil -1))
+               ((looking-at "\\<function\\>")
+                (goto-char (match-end 0))
+                (gap-find-matching "\\<function\\>" "\\<end\\>" nil t))
+               ((looking-at "\\<end\\>")
+                (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1))
+               (t nil)))
+        (t nil)))
 
 (defun gap-percent-command (arg)
   "* This Gap-mode function is for people who are used to the % command in vi.
@@ -772,57 +772,57 @@ or end of a group that the point is on, otherwise just insert a % symbol."
   ;; if forw is -1, then match backward instead of figuring it out
   ;; if noerr, just return nil
   (let ((p (point))
-	(searcher 're-search-forward)
-	(inc breg)  ;; Everytime we see this, increment counter 
-	(dec ereg)  ;; Everytime we see this, decrement counter 
-	(c 1)
-	(d t) ;; d=t => direction forward
-	(p1 (point)))
+        (searcher 're-search-forward)
+        (inc breg)  ;; Everytime we see this, increment counter
+        (dec ereg)  ;; Everytime we see this, decrement counter
+        (c 1)
+        (d t) ;; d=t => direction forward
+        (p1 (point)))
     (cond ((eq forw nil)
-	   (cond ((or (looking-at breg) (and also (looking-at also)))
-		  (setq p1 (match-end 0)))
-		 ((looking-at ereg)
-		  (setq p1 (match-beginning 0))
-		  (setq searcher 're-search-backward
-			inc ereg
-			dec breg
-			d nil))))
-	  ((eq forw -1)
-	   (setq p1 (point))
-	   (setq searcher 're-search-backward
-		 inc ereg
-		 dec breg
-		 d nil)))
+           (cond ((or (looking-at breg) (and also (looking-at also)))
+                  (setq p1 (match-end 0)))
+                 ((looking-at ereg)
+                  (setq p1 (match-beginning 0))
+                  (setq searcher 're-search-backward
+                        inc ereg
+                        dec breg
+                        d nil))))
+          ((eq forw -1)
+           (setq p1 (point))
+           (setq searcher 're-search-backward
+                 inc ereg
+                 dec breg
+                 d nil)))
     (goto-char p1)
     (while (and (> c 0) (apply searcher (concat "\\(" breg "\\|" ereg
-						(if also "\\|") also "\\)")
-			       nil t nil))
+                                                (if also "\\|") also "\\)")
+                               nil t nil))
       (setq p1 (match-beginning 0))
       (if (not (gap-point-in-comment-string))
-	  (save-excursion
-	    (goto-char p1)
-	    (if (and (= c 1) also (looking-at also))
-		(setq c 0)
-	      (setq c (+ c (cond ((looking-at inc) 1)
-				 ((looking-at dec) -1)
-				 (t 0)))))
-	    (if (= c 0) (setq p (point))))))
+          (save-excursion
+            (goto-char p1)
+            (if (and (= c 1) also (looking-at also))
+                (setq c 0)
+              (setq c (+ c (cond ((looking-at inc) 1)
+                                 ((looking-at dec) -1)
+                                 (t 0)))))
+            (if (= c 0) (setq p (point))))))
     (if (not (= c 0))
         (if noerr
             (setq p nil)
           (error "No match!"))
       (goto-char p))
     p))
-  
+
 
 
 (defun gap-calculate-indent ()
   (save-excursion
     (gap-beginning-of-line)
     (let ((pos (point))
-	  this-stmt this-beg this-end
-	  last-stmt last-beg last-end
-	  ind)
+          this-stmt this-beg this-end
+          last-stmt last-beg last-end
+          ind)
 
       ;; extract this statement
       (gap-search-back-end-stmt nil 1 'end)
@@ -833,133 +833,133 @@ or end of a group that the point is on, otherwise just insert a % symbol."
       (gap-search-forward-end-stmt (end-of-line-from-point pos) 1 'end)
       (setq this-end (point))
       (setq this-stmt (gap-strip-strings-comments
-		       (buffer-substring this-beg this-end)))
+                       (buffer-substring this-beg this-end)))
 
       ;; First check if this is a continued line and handle that.
       (if (setq ind (gap-calc-continued-stmt
-		     this-stmt this-beg this-end pos))
-	  ind
+                     this-stmt this-beg this-end pos))
+          ind
 
-	;; Not a continued line. Find the previous statement.
-	(goto-char last-end)
-	(gap-search-back-end-stmt nil 1 'beg) ; jump to beginning of
-					      ; the end of last stmt
-	(gap-search-back-end-stmt nil 1 'end) ; jump to end of the end of the
-					      ; stmt before the last stmt
-	(gap-skip-forward-to-token nil t)     ; skip forward to start of last
-	(setq last-beg (point))
-	(setq last-stmt (gap-strip-strings-comments
-			 (buffer-substring last-beg last-end)))
+        ;; Not a continued line. Find the previous statement.
+        (goto-char last-end)
+        (gap-search-back-end-stmt nil 1 'beg) ; jump to beginning of
+                                        ; the end of last stmt
+        (gap-search-back-end-stmt nil 1 'end) ; jump to end of the end of the
+                                        ; stmt before the last stmt
+        (gap-skip-forward-to-token nil t)     ; skip forward to start of last
+        (setq last-beg (point))
+        (setq last-stmt (gap-strip-strings-comments
+                         (buffer-substring last-beg last-end)))
 
-	;; Now find the indentation
-	(setq ind (gap-calc-new-stmt
-		   this-stmt this-beg this-end
-		   last-stmt last-beg last-end)))
+        ;; Now find the indentation
+        (setq ind (gap-calc-new-stmt
+                   this-stmt this-beg this-end
+                   last-stmt last-beg last-end)))
 
       ;; return the indentation
       ind)))
-	
+
 
 (defun gap-calc-new-stmt (this-stmt this-beg this-end last-stmt
-				    last-beg last-end)
+                                    last-beg last-end)
   "Find indentation for new statement in gap"
   (let (base ind)
     (goto-char last-beg)
     (setq base (progn (gap-back-to-indentation) (gap-current-column))
-	  ind base)
+          ind base)
 
     (if (string-match gap-increment-indentation-regexp last-stmt)
-	(setq ind (+ ind gap-indent-step)))
+        (setq ind (+ ind gap-indent-step)))
     (if (string-match gap-decrement-indentation-regexp this-stmt)
-	(setq ind (- ind gap-indent-step)))
+        (setq ind (- ind gap-indent-step)))
     (if gap-debug-indent
-	(gap-debug-inform base ind last-stmt this-stmt))
+        (gap-debug-inform base ind last-stmt this-stmt))
     ind))
-	
+
 
 (defun gap-calc-continued-stmt (this-stmt this-beg this-end pos)
   ;; now check to see if we have a continued line or not
   (save-excursion
     (goto-char this-beg)
     (if (not (save-excursion (re-search-forward "[\n\C-m]" pos t)))
-	nil
+        nil
       ;; we are on a continued line. Handle it and return indentation.
       (let ((bracks (if gap-indent-brackets
-			(gap-calc-brackets this-beg pos)
-		      nil))
-	    ind-special
-	    ind)
-	
-	;; Right.  Now check to see if our special
-	;; continued line reg-exp matches this statment
-	(goto-char this-beg)
+                        (gap-calc-brackets this-beg pos)
+                      nil))
+            ind-special
+            ind)
 
-	;; If it is not a special continued line, then the indentation
-	;; will be...
-	(setq ind (+ (lines-indentation this-beg) 
-		     gap-indent-step-continued))
-	
-	;; Now must check whether statement matches special indentation
-	;; regular expression.
-	
-	(setq ind-special nil)
-	(let ((special-list gap-continued-special-list))
-	  (while special-list
-	    (let ((regexp (nth 0 (car special-list)))
-		  (match (nth 1 (car special-list)))
-		  (offset (nth 2 (car special-list)))
-		  (term (nth 3 (car special-list))))
-	      (if (not (gap-searcher 're-search-forward			      
-				     regexp
-				     pos t
-				     (if (numberp match)
-					 '(match-beginning match))))
-		  ;; No match, try next one.
-		  (setq special-list (cdr special-list))
-		;; Found a match! Great
-		(if term
-		    (setq special-list nil)
-		  (setq special-list (cdr special-list)))
-		(if (null match)
-		    (gap-back-to-indentation))
-		(setq ind-special (max (if (null ind-special) 0 ind-special)
-				       (+ (gap-current-column) offset)))))))
-		
-	;; Now decide on the actual indentation.
-	(cond ( (and bracks ind-special)
-		;; both special stmt and within brackets.
-		(setq ind
-		      (max ind-special
-			   (if gap-bracket-threshold
-			       (min (car bracks)
-				    (+ (max ind-special (cdr bracks))
-				       gap-bracket-threshold))
-			     (car bracks))))
-		(if gap-debug-indent
-		    (gap-debug-inform ind-special ind nil this-stmt
-				      "Special & Brackets")))
-	      ( bracks
-		;; within brackets.
-		(setq ind
-		      (if gap-bracket-threshold
-			  (min (car bracks)
-			       (+ (cdr bracks) gap-bracket-threshold))
-			(car bracks)))
-		(if gap-debug-indent
-		    (gap-debug-inform (cdr bracks) ind nil this-stmt
-				      "Brackets")))
-	      ( ind-special
-		;; just on special indentation line (no bracketing)
-		(setq ind ind-special)
-		(if gap-debug-indent
-		    (gap-debug-inform nil ind nil this-stmt
-				      "Special")))
-	      ( t
-		;; otherwise, don't adjust standard indentation
-		(if gap-debug-indent
-		    (gap-debug-inform nil ind this-stmt
-				      "Continued"))))
-	ind))))
+        ;; Right.  Now check to see if our special
+        ;; continued line reg-exp matches this statment
+        (goto-char this-beg)
+
+        ;; If it is not a special continued line, then the indentation
+        ;; will be...
+        (setq ind (+ (lines-indentation this-beg)
+                     gap-indent-step-continued))
+
+        ;; Now must check whether statement matches special indentation
+        ;; regular expression.
+
+        (setq ind-special nil)
+        (let ((special-list gap-continued-special-list))
+          (while special-list
+            (let ((regexp (nth 0 (car special-list)))
+                  (match (nth 1 (car special-list)))
+                  (offset (nth 2 (car special-list)))
+                  (term (nth 3 (car special-list))))
+              (if (not (gap-searcher 're-search-forward
+                                     regexp
+                                     pos t
+                                     (if (numberp match)
+                                         '(match-beginning match))))
+                  ;; No match, try next one.
+                  (setq special-list (cdr special-list))
+                ;; Found a match! Great
+                (if term
+                    (setq special-list nil)
+                  (setq special-list (cdr special-list)))
+                (if (null match)
+                    (gap-back-to-indentation))
+                (setq ind-special (max (if (null ind-special) 0 ind-special)
+                                       (+ (gap-current-column) offset)))))))
+
+        ;; Now decide on the actual indentation.
+        (cond ( (and bracks ind-special)
+                ;; both special stmt and within brackets.
+                (setq ind
+                      (max ind-special
+                           (if gap-bracket-threshold
+                               (min (car bracks)
+                                    (+ (max ind-special (cdr bracks))
+                                       gap-bracket-threshold))
+                             (car bracks))))
+                (if gap-debug-indent
+                    (gap-debug-inform ind-special ind nil this-stmt
+                                      "Special & Brackets")))
+              ( bracks
+                ;; within brackets.
+                (setq ind
+                      (if gap-bracket-threshold
+                          (min (car bracks)
+                               (+ (cdr bracks) gap-bracket-threshold))
+                        (car bracks)))
+                (if gap-debug-indent
+                    (gap-debug-inform (cdr bracks) ind nil this-stmt
+                                      "Brackets")))
+              ( ind-special
+                ;; just on special indentation line (no bracketing)
+                (setq ind ind-special)
+                (if gap-debug-indent
+                    (gap-debug-inform nil ind nil this-stmt
+                                      "Special")))
+              ( t
+                ;; otherwise, don't adjust standard indentation
+                (if gap-debug-indent
+                    (gap-debug-inform nil ind this-stmt
+                                      "Continued"))))
+        ind))))
 
 
 (defun gap-calc-brackets (this-beg pos)
@@ -969,15 +969,15 @@ base indentation of the line starting the bracket grouping"
   (goto-char pos)
   (let ((brack-level -1) ind-brack base-brack)
     (while (and (< brack-level 0)
-		(gap-searcher 're-search-backward
-			      "\\(\\s(\\|\\s)\\)" this-beg t))
+                (gap-searcher 're-search-backward
+                              "\\(\\s(\\|\\s)\\)" this-beg t))
       (cond ((looking-at "\\s(")
-	     (setq brack-level (1+ brack-level)))
-	    ((looking-at "\\s)")
-	     (setq brack-level (1- brack-level)))))
+             (setq brack-level (1+ brack-level)))
+            ((looking-at "\\s)")
+             (setq brack-level (1- brack-level)))))
     (if (not (= brack-level 0))
-	;; Not within unclosed brackets.
-	nil
+        ;; Not within unclosed brackets.
+        nil
       ;; Yes we are within unclosed brackets.
       (setq base-brack (current-indentation))
       (forward-char 1)
@@ -996,43 +996,43 @@ strings in the gap code.
 MOVE after each search. This is for moving to the beginning or end of
 groups in the regexp. eg use '(match-beginning 0)."
   (let ((done nil)
-	return pos)
+        return pos)
     (while (not done)
       (if (not (apply search-func object bound silent nil))
-	  (setq done t
-		return nil)
-	;; move to position asked
-	(setq pos (if move
-		      (eval move)
-		    (point)))
-	;; Make sure that we haven't hit a string/comment!
-	(if (gap-point-in-comment-string)
-	    ;; in comment/string! Not finished yet. Try again.
-	    nil
-	  ;; Found the position.
-	  (goto-char pos)
-	  (setq done t
-		return t))))
+          (setq done t
+                return nil)
+        ;; move to position asked
+        (setq pos (if move
+                      (eval move)
+                    (point)))
+        ;; Make sure that we haven't hit a string/comment!
+        (if (gap-point-in-comment-string)
+            ;; in comment/string! Not finished yet. Try again.
+            nil
+          ;; Found the position.
+          (goto-char pos)
+          (setq done t
+                return t))))
     return))
-  
+
 
 (defun gap-search-back-end-stmt (limit ret goto)
   "This function searches backward from point for the end of a gap
 statement, making sure to skip over comments and strings."
   (if (not (gap-searcher 're-search-backward ; searcher to use.
-			 gap-end-of-statement ; regular expression.
-			 limit		; bound for search.
-			 (if ret 1 t)	; return nil if no match
-					; and goto bound if RET.
-			 (if (eq goto 'end)
-			     '(match-end 0)
-			   '(match-beginning 0))))
+                         gap-end-of-statement ; regular expression.
+                         limit      ; bound for search.
+                         (if ret 1 t)   ; return nil if no match
+                                        ; and goto bound if RET.
+                         (if (eq goto 'end)
+                             '(match-end 0)
+                           '(match-beginning 0))))
       ;; not found. Move to limit if so asked
-      nil      
+      nil
     ;; now make sure we skip over multiple semi-colons
     (while (and (not (eq goto 'end))
-		(looking-at ";")
-		(> (point) (point-min)))
+                (looking-at ";")
+                (> (point) (point-min)))
       (forward-char -1))
     t))
 
@@ -1040,23 +1040,23 @@ statement, making sure to skip over comments and strings."
   "This function searches forward from point for the end of a gap
 statement, making sure to skip over comments and strings."
   (if (not (gap-searcher 're-search-forward   ; searcher to use.
-			 gap-end-of-statement ; regular expression.
-			 limit		; bound for search.
-			 (if ret 1 t)	; return nil if no match
-					; and goto bound if RET.
-			 (if (eq goto 'end)
-			     '(match-end 0)
-			   '(match-beginning 0))))
+                         gap-end-of-statement ; regular expression.
+                         limit      ; bound for search.
+                         (if ret 1 t)   ; return nil if no match
+                                        ; and goto bound if RET.
+                         (if (eq goto 'end)
+                             '(match-end 0)
+                           '(match-beginning 0))))
       ;; not found. Move to limit if so asked
-      nil      
+      nil
     ;; now make sure we skip over multiple semi-colons
     (while (and (not (eq goto 'end))
-		(looking-at ";")
-		(> (point) (point-min)))
+                (looking-at ";")
+                (> (point) (point-min)))
       (forward-char -1))
     t))
 
-			 
+
 
 ;;! Emacs Variables:
 ;; Local Variables:
