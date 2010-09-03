@@ -303,15 +303,15 @@ of communicating with a running gap process."
      . font-lock-builtin-face)
 
     ;; Functions -- based on capitalization and proximity to parenthesis
-    ("\\_<\\([A-Z]\\w+\\)\\s *(" 1 font-lock-function-name-face t)
+    ("\\_<\\([A-Z]\\(?:\\w\\|\\s_\\)+\\)\\s *(" 1 font-lock-function-name-face t)
 
     ;; Functions -- based on assignment
-    ("\\_<\\(\\w+\\)\\s *:=\\s *\\(function\\)"
+    ("\\_<\\(\\(?:\\w\\|\\s_\\)+\\)\\s *:=\\s *\\(function\\)"
      (1 font-lock-function-name-face t)
      (2 font-lock-keyword-face)) ; Shouldn't funcion already be highlighted?
 
     ;; Variables as they are assigned
-    ("\\_<\\(\\w+\\)\\s *\\(:=\\)"
+    ("\\_<\\(\\(?:\\w\\|\\s_\\)+\\)\\s *\\(:=\\)"
      (1 font-lock-variable-name-face)
      (2 'bold))
     ;; TODO: could use an eval form to scan the buffer for funcion
