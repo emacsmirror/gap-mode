@@ -87,17 +87,6 @@
 ;;! Autoload functions from gap-process.
 (autoload 'gap-help "gap-process" nil t)
 (autoload 'gap-complete "gap-process" nil t)
-
-
-;;! Fix member function?!
-(defun memberequal (x y)
-  "Like memq, but uses `equal' for comparison.
-This is a subr in Emacs 19."
-  (while (and y (not (equal x (car y))))
-    (setq y (cdr y)))
-  y)
-
-
 ;;{{{ defcustoms/defvars
 
 (defgroup gap nil
@@ -1130,6 +1119,13 @@ statement, making sure to skip over comments and strings."
       (forward-char -1))
     t))
 
+;;! Fix member function?!
+(defun memberequal (x y)
+  "Like memq, but uses `equal' for comparison.
+This is a subr in Emacs 19."
+  (while (and y (not (equal x (car y))))
+    (setq y (cdr y)))
+  y)
 
 
 ;;! Emacs Variables:
