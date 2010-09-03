@@ -98,86 +98,160 @@ This is a subr in Emacs 19."
   y)
 
 
-(defvar gap-indent-brackets t
-  "* Whether to check back for unclosed brackets in determining
-indentation level. This is good for formatting lists and matrices.")
+;;{{{ defcustoms/defvars
 
-(defvar gap-bracket-threshold 8
-  "* If indentation due to bracketing will indent more than this value,
-use this value instead.  nil is equivalent to infinity.")
+(defgroup gap nil
+  "Support for the GAP programming language."
+  :group 'languages
+  :prefix "gap"
+  ;; :link '(function-link gap-mode)
+  )
 
-(defvar gap-indent-step 4
-  "* Amount of extra indentation for each level of grouping in Gap code.")
+(defcustom gap-indent-brackets t
+  "Whether to check back for unclosed brackets in determining
+indentation level. This is good for formatting lists and matrices."
+  :group 'gap
+  :type 'boolean
+  :safe t)
 
-(defvar gap-indent-step-continued 2
-  "* Amount of extra indentation to add for normal continued lines.")
+;; TODO: make integer or nil
+(defcustom gap-bracket-threshold 8
+  "If indentation due to bracketing will indent more than this value,
+use this value instead.  nil is equivalent to infinity."
+  :group 'gap
+  :type 'integer
+  :safe t)
 
-(defvar gap-indent-comments t
-  "* Variable controlling how the indent command works on comments.  A comment
+(defcustom gap-indent-step 4
+  "Amount of extra indentation for each level of grouping in Gap code."
+  :group 'gap
+  :type 'integer
+  :safe t)
+
+(defcustom gap-indent-step-continued 2
+  "Amount of extra indentation to add for normal continued lines."
+  :group 'gap
+  :type 'integer
+  :safe t)
+
+;; TODO: make sure this actually works once we restart
+(defcustom gap-indent-comments t
+  "Variable controlling how the indent command works on comments.  A comment
 will be indented to the next tab-stop if gap-indent-comments is:
   0    and the cursor is on the # character
   1    and the cursor is 1 character to the right of the # character
   t    and the cursor is anywhere to the right of the # character
-If nil then use calculated indentation level only.")
+If nil then use calculated indentation level only."
+  :group 'gap
+  :type '(choice (const :tag "Cursor on the # character" 0)
+                 (integer :tag "Cursor n characters to the right of #")
+                 (other :tag "Cursor to the right of the # character" t)
+                 (const :tag "Calculated indentation only" nil))
+  :safe t)
 
-(defvar gap-indent-comments-flushleft nil
-  "* If t then indent comments based on gap-indent-comments regardless
+(defcustom gap-indent-comments-flushleft nil
+  "If non-nil then indent comments based on gap-indent-comments regardless
 of whether the comment is flush-left or not.  Set this to nil to treat
-flush-left comments as special---i.e. not to be indented by pressing TAB.")
+flush-left comments as special---i.e. not to be indented by pressing TAB."
+  :group 'gap
+  :type 'boolean
+  :safe t)
 
-(defvar gap-auto-indent-comments t
-  "* Controls whether the region indentation commands will change
-indentation of comment lines.")
+(defcustom gap-auto-indent-comments t
+  "Controls whether the region indentation commands will change
+indentation of comment lines."
+  :group 'gap
+  :type 'boolean
+  :safe t)
 
-(defvar gap-pre-return-indent t
-  "* If t, then indent the line before breaking to next line on RET keypress.")
+(defcustom gap-pre-return-indent t
+  "If non-nil indent the line before breaking to next line on RET keypress."
+  :group 'gap
+  :type 'boolean
+  :safe t)
 
-(defvar gap-post-return-indent t
-  "* If t, then autoindent after a RET keypress.")
+(defcustom gap-post-return-indent t
+  "If non-nil autoindent after a RET keypress."
+  :group 'gap
+  :type 'boolean
+  :safe t)
 
-(defvar gin-retain-indent-re "[ \t]*#+[ \t]*\\|[ \t]+"
-  "* regular expression for gin-mode's filling command to allow it to
-fill GAP comments")
+(defcustom gin-retain-indent-re "[ \t]*#+[ \t]*\\|[ \t]+"
+  "Regular expression for gin-mode's filling command to allow it to
+fill GAP comments"
+  :group 'gap
+  :type 'regexp
+  :safe t)
 
-(defvar gap-fill-if-gin nil
-  "* Set to t to intelligently fill paragraphs if point is in comment and
-indent region command is run.")
+(defcustom gap-fill-if-gin nil
+  "Set to t to intelligently fill paragraphs if point is in comment and
+indent region command is run."
+  :group 'gap
+  :type 'boolean
+  :safe t)
 
-(defvar gap-tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44
-                              48 52 56 60 64 68 72 74 78)
-  "* Gap-mode tab-stop-list.  Note this is effectively only used in the
+;; TODO: this could have a better type
+(defcustom gap-tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44
+                                 48 52 56 60 64 68 72 74 78)
+  "Gap-mode tab-stop-list.  Note this is effectively only used in the
 indentation of comments---all gap code indentation depends on the
-variable gap-indent-step.")
+variable gap-indent-step."
+  :group 'gap
+  :type '(sexp)
+  :safe t)
 
-(defvar gap-mode-hook nil
-  "* Function to be called after setting gap-mode for buffer.")
+(defcustom gap-mode-hook nil
+  "Function to be called after setting gap-mode for buffer."
+  :group 'gap
+  :type 'hook
+  :safe t)
 
-(defvar gap-local-statement-format '(3 2)
+(defcustom gap-local-statement-format '(3 2)
   "Two element list determining format of local var statement inserted.
 First element is number of spaces after \"local\", the second is number
-of spaces after each comma.")
+of spaces after each comma."
+  :group 'gap
+  :type '(list integer integer)
+  :safe t)
 
-(defvar gap-local-statement-margin (if fill-column fill-column 75)
-  "Column at which to wrap local variable statement.")
+(defcustom gap-local-statement-margin (if fill-column fill-column 75)
+  "Column at which to wrap local variable statement."
+  :group 'gap
+  :type 'integer
+  :safe t)
 
-(defvar gap-insert-debug-name "Info"
-  "* Function name to use when inserting a debugging/print statement.")
+(defcustom gap-insert-debug-name "Info"
+  "Function name to use when inserting a debugging/print statement."
+  :group 'gap
+  :type 'string
+  :safe t)
 
-(defvar gap-insert-debug-string "#I  %s: "
-  "* String to use when inserting a debugging/print statement.
-A %s is substituted with the name of the current function.")
+(defcustom gap-insert-debug-string "#I  %s: "
+  "String to use when inserting a debugging/print statement.
+A %s is substituted with the name of the current function."
+  :group 'gap
+  :type 'string
+  :safe t)
 
-(defvar gap-use-dabbrev t
-  "* If true then the complete command will simply call dabbrev instead
-of communicating with a running gap process.")
+;; TODO: make a gap-completion-function which could be dabbrev or not.
+;; Then deprecate this
+(defcustom gap-use-dabbrev t
+  "If true then the complete command will simply call dabbrev instead
+of communicating with a running gap process."
+  :group 'gap
+  :type 'boolean
+  :safe t)
 
+(defcustom gap-debug-indent nil
+  "Show the facts that gap-indent bases its decision on."
+  :group 'gap
+  :type 'boolean
+  :safe t)
 
-;;
+;;}}}
+
 ;;
 ;; Non-user variables and function definitions.
-
-(defvar gap-debug-indent nil
-  "* Show the facts that gap-indent bases its decision on.")
 
 (defvar gap-syntax-table nil
   "Syntax table used while in gap mode.")
