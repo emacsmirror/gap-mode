@@ -238,39 +238,157 @@ of communicating with a running gap process."
   :safe t)
 
 ;;}}}
+;;{{{ gap-mode, syntax and font-lock
 
-;;
-;; Non-user variables and function definitions.
-
-(defvar gap-syntax-table nil
+(defvar gap-syntax-table
+  (let ((table (make-syntax-table)))
+    ;; Comments
+    (modify-syntax-entry ?#  "<" table)
+    (modify-syntax-entry ?\n ">" table)
+    (modify-syntax-entry ?\r ">" table) ;; cope with outline mode
+    ;; operators
+    (modify-syntax-entry ?+  "." table)
+    (modify-syntax-entry ?-  "." table)
+    (modify-syntax-entry ?*  "." table)
+    (modify-syntax-entry ?/  "." table)
+    (modify-syntax-entry ?^  "." table)
+    (modify-syntax-entry ?~  "." table)
+    (modify-syntax-entry ?!  "." table)
+    (modify-syntax-entry ?=  "." table)
+    (modify-syntax-entry ?<  "." table)
+    (modify-syntax-entry ?>  "." table)
+    ;; TODO: make sure this comment is correct, or just make . into punctuation
+    ;; Symbol (sort of a hack so that x.y is a single symbol for help purposes)
+    ;; We will put make .. punctuation later
+    (modify-syntax-entry ?.  "_" table)
+    table)
   "Syntax table used while in gap mode.")
 
-(if gap-syntax-table ()
-  (setq gap-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?. "w" gap-syntax-table) ;; . is part of identifiers
-  (modify-syntax-entry ?# "<" gap-syntax-table)
-  (modify-syntax-entry ?\n ">" gap-syntax-table)
-  (modify-syntax-entry ?\C-m ">" gap-syntax-table) ;; cope with outline mode
-  )
+(defvar gap-font-lock-syntactic-keywords
+  `(("\\.\\." 0 ".")              ; Make .. into puctuation
+    ("\\\\."  0 "_")              ; Make \character a symbol character
+    ;; Make 'c' and '\n' into strings
+    ("\\('\\)\\([^\\]\\|\\\\.\\)\\('\\)"
+     (1 "\"")
+     (2 "w")
+     (3 "\""))))
 
-(defvar gap-mode-map nil)
-(if gap-mode-map
-    nil
-  (setq gap-mode-map (make-sparse-keymap))
-  (define-key gap-mode-map "\C-c%" 'gap-match-group)
-  (define-key gap-mode-map "\C-m" 'gap-newline-command)
-  (define-key gap-mode-map "\t" 'gap-indent-command)
-  (define-key gap-mode-map "\eq" 'gap-format-region)
-  (define-key gap-mode-map "\e\C-q" 'gap-format-buffer)
-  (define-key gap-mode-map "\e\t" 'gap-completion)
-  (define-key gap-mode-map "\e?" 'gap-help)
-  (define-key gap-mode-map "\C-c#" 'gap-comment-region)
-  (define-key gap-mode-map "\C-ca" 'gap-add-local-variable)
-  (define-key gap-mode-map "\C-cd" 'gap-insert-debug-print)
-  (define-key gap-mode-map "\C-cl" 'gap-insert-local-variables)
-  )
 
-(defun gap-mode ()
+;; (defvar gap-font-lock-keywords
+(setq gap-font-lock-keywords
+  `(;; Figure out how to get special font-locking of special comments
+    ;; ("^#[ACFMROPV#]\\(.*\\)" . font-lock-doc-string-face)
+    ;; ("^#I\\(.*\\)" . font-lock-doc-string-face)
+    ;; #I for info comments (from Info command)
+    ;; #G for garbage collection info??
+    ;; #W for workspace info??
+
+    ;; Keywords
+    (,(concat "\\_<"
+              (regexp-opt
+               (list "and" "do" "elif" "else" "end" "fi" "for"
+                     "function" "if" "in" "local" "mod" "not"
+                     "od" "or" "repeat" "return" "then" "until"
+                     "while" "quit" "QUIT" "break" "rec" "continue"))
+              "\\_>")
+     . font-lock-keyword-face)
+
+    ;; "Special" keywords
+    ;; Should true/false/fail be font-lock-constant-face?
+    (,(concat "\\_<"
+              (regexp-opt
+               (list "IsBound" "Unbind" "TryNextMethod" "Info" "Assert" "SaveWorkspace"
+                     "true" "false" "fail" ))
+              "\\_>")
+     . font-lock-builtin-face)
+
+    ;; Functions -- based on capitalization and proximity to parenthesis
+    ("\\_<\\([A-Z]\\w+\\)\\s *(" 1 font-lock-function-name-face t)
+
+    ;; Functions -- based on assignment
+    ("\\_<\\(\\w+\\)\\s *:=\\s *\\(function\\)"
+     (1 font-lock-function-name-face t)
+     (2 font-lock-keyword-face)) ; Shouldn't funcion already be highlighted?
+
+    ;; Variables as they are assigned
+    ("\\_<\\(\\w+\\)\\s *\\(:=\\)"
+     (1 font-lock-variable-name-face)
+     (2 'bold))
+    ;; TODO: could use an eval form to scan the buffer for funcion
+    ;; declarations and mark them...
+    ))
+
+
+(defvar gap-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Indenting, formatting
+    (define-key map [return] 'gap-newline-command)
+    (define-key map "\M-q"   'gap-format-region)
+    (define-key map "\M-\C-q" 'gap-format-buffer)
+    (define-key map "\C-c#"  'gap-comment-region)
+    ;; Inserting
+    (define-key map "\C-cl"  'gap-insert-local-variables)
+    (define-key map "\C-ca"  'gap-add-local-variable)
+    (define-key map "\C-cd"  'gap-insert-debug-print)
+    ;; Marking and moving by blocks
+    (define-key map "\C-c%"  'gap-match-group)
+    ;; Interpreter
+    (define-key map [M-tab]  'gap-completion) ; Should probably use
+    (define-key map "\M-?"   'gap-help)
+    ;; Menu
+    (easy-menu-define gap-menu map "GAP Mode menu"
+      `("GAP" :help "GAP-specific Features"
+        ["Format region" gap-format-region :active mark-active
+         :help "Indent and format comments in region"]
+        ["Format buffer" gap-format-buffer
+         :help "Indent and format comments in buffer"]
+        ["Comment Region" gap-comment-region :active mark-active
+         :help "Comment region, or uncomment with prefix-argument"]
+        "-"
+        ["Insert Local Variables" gap-insert-local-variables
+         :help "Insert statement local variables"] ;TODO:
+        ["Add Local Variable" gap-add-local-variable
+         :help "Insert statement local variables"]
+        ["Insert Debug Statement" gap-insert-debug-print
+         :help "Insert debug print statement"]
+        "-"
+        ;; ["Mark def/class" mark-defun
+        ;;  :help "Mark innermost definition around point"]
+        ;; ["Start of block" python-beginning-of-block
+        ;;  :help "Go to start of innermost definition around point"]
+        ;; ["End of block" python-end-of-block
+        ;;  :help "Go to end of innermost definition around point"]
+        ;; ["Start of def/class" beginning-of-defun
+        ;;  :help "Go to start of innermost definition around point"]
+        ;; ["End of def/class" end-of-defun
+        ;;  :help "Go to end of innermost definition around point"]
+        ["Jump to matching beginning/end of grouping" gap-match-group
+         :help "Mark innermost definition around point"]
+        "-"
+        ;; TODO: get this list
+        ["Start interpreter" gap
+         :help "Run `inferior' GAP in separate buffer"]
+        ;; TODO: I need to add these
+        ;; ["Eval buffer" python-send-buffer
+        ;;  :help "Evaluate buffer en bloc in inferior Python session"]
+        ;; ["Eval region" python-send-region :active mark-active
+        ;;  :help "Evaluate region en bloc in inferior Python session"]
+        ;; ["Eval def/class" python-send-defun
+        ;;  :help "Evaluate current definition in inferior Python session"]
+        ;; ["Switch to interpreter" python-switch-to-python
+        ;;  :help "Switch to inferior Python buffer"]
+        ;; ["Set default process" python-set-proc
+        ;;  :help "Make buffer's inferior process the default"
+        ;;  :active (buffer-live-p python-buffer)]
+        "-"
+        ["Help on symbol" gap-help :active (gap-running-p)
+         :help "Use inferior GAP to get help for symbol at point (if running)"]
+        ["Complete symbol" gap-complete :active (gap-running-p)
+         :help "Complete (qualified) symbol before point"]
+        ))
+    map))
+
+(define-derived-mode gap-mode fundamental-mode "GAP"
   "Major mode for writing Gap programs.  The following keys are defined:
 
  \\[gap-indent-command]      to intelligently indent current line.
@@ -333,17 +451,19 @@ test := function (x,y)
                        x^-1, x^-2, x^-3)),
                IsMat);
 end;"
-
-  (interactive)
-  (setq major-mode 'gap-mode)
-  (setq mode-name "Gap")
-  (use-local-map gap-mode-map)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'gap-indent-line)
-  (set-syntax-table gap-syntax-table)
+  :group 'gap
+  :syntax-table gap-syntax-table
+  (set (make-local-variable 'font-lock-defaults)
+       '(gap-font-lock-keywords nil nil nil nil
+                                (font-lock-syntactic-keywords
+                                 . gap-font-lock-syntactic-keywords)))
+  (set (make-local-variable 'indent-line-function)
+       'gap-indent-line)
   (setq indent-tabs-mode nil)
-  (setq tab-stop-list gap-tab-stop-list)
-  (run-hooks 'gap-mode-hook))
+  (setq tab-stop-list gap-tab-stop-list))
+
+;;}}}
+
 
 (defun gap-comment-region (arg p1 p2)
   (interactive "p\nr")
