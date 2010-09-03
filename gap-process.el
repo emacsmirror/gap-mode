@@ -70,8 +70,8 @@
 (defvar gap-executable "/usr/local/algebra/bin/gap"
   "* The GAP executable.")
 (defvar gap-start-options (list "-b"
-    ;;"-l" "/usr/local/algebra/gap3.2/lib/"
-    "-m" "2m")
+                                ;;"-l" "/usr/local/algebra/gap3.2/lib/"
+                                "-m" "2m")
   "* The list of initial GAP options.")
 (defvar gap-prompt-regexp "\\(.*\\(gap\\|brk\\)>\\|^>\\) *"
   "* Regexp used by Newline command in GAP mode to match prompt.")
@@ -115,7 +115,7 @@ completions list double columnes.")
   (and gap-process-buffer
        (get-buffer-process gap-process-buffer)
        (eq (process-status (get-buffer-process gap-process-buffer))
-    'run)))
+           'run)))
 (defun gap (&optional send-buffer)
   "* Start up a GAP session in a comint-mode buffer.  With prefix arg, send
 the contents of the current buffer to the GAP session as initial standard
@@ -124,26 +124,26 @@ sending current buffer if prefix arg."
   (interactive "P")
   (if (not (gap-running-p))
       (let (proc)
- (setq gap-pending-input (if send-buffer (buffer-string) nil))
- (setq gap-pending-pointer 0)
- (setq gap-process-buffer
-       (get-start-process gap-executable nil
-     (if gap-directory
-         (expand-file-name gap-directory)
-       nil)
-     gap-start-options))
- (setq proc (get-buffer-process gap-process-buffer))
- (gap-process-mode)
- (if (not send-buffer)
-     (set-process-filter proc 'gap-output-filter)
-   (set-process-filter proc 'gap-startfile-filter)))
+        (setq gap-pending-input (if send-buffer (buffer-string) nil))
+        (setq gap-pending-pointer 0)
+        (setq gap-process-buffer
+              (get-start-process gap-executable nil
+                                 (if gap-directory
+                                     (expand-file-name gap-directory)
+                                   nil)
+                                 gap-start-options))
+        (setq proc (get-buffer-process gap-process-buffer))
+        (gap-process-mode)
+        (if (not send-buffer)
+            (set-process-filter proc 'gap-output-filter)
+          (set-process-filter proc 'gap-startfile-filter)))
     (if send-buffer
- (let (proc)
-   (setq gap-pending-input (buffer-string))
-   (setq gap-pending-pointer 0)
-   (setq proc (get-buffer-process gap-process-buffer))
-   (set-process-filter proc 'gap-startfile-filter)
-   (comint-send-string proc "\n")))
+        (let (proc)
+          (setq gap-pending-input (buffer-string))
+          (setq gap-pending-pointer 0)
+          (setq proc (get-buffer-process gap-process-buffer))
+          (set-process-filter proc 'gap-startfile-filter)
+          (comint-send-string proc "\n")))
     (switch-to-buffer gap-process-buffer)))
 
 (defun gap-process-mode ()
@@ -182,24 +182,24 @@ when it thinks GAP is waiting for it (using gap-prompt-regexp)."
     (insert (string-strip-chars string "\C-h\C-g\C-m"))
     (set-marker (process-mark proc) (point))
     (if (and gap-process-beep (string-match "\C-g" string))
- (beep))
+        (beep))
     (save-excursion
       (beginning-of-line)
       (if (looking-at (concat ".*" gap-prompt-regexp "$"))
-   (let ((x (string-match "\n" (substring gap-pending-input
-       gap-pending-pointer))))
-     (if x
-  (progn
-    (comint-send-string proc
-          (substring gap-pending-input
-       gap-pending-pointer
-       (+ 1 x gap-pending-pointer)))
-    (setq gap-pending-pointer (+ 1 x gap-pending-pointer)))
-       (set-process-filter proc 'gap-output-filter)
-       (gap-process-mode)
-       (comint-send-string proc (substring gap-pending-input
-        gap-pending-pointer))
-       (setq gap-pending-input nil)))))
+          (let ((x (string-match "\n" (substring gap-pending-input
+                                                 gap-pending-pointer))))
+            (if x
+                (progn
+                  (comint-send-string proc
+                                      (substring gap-pending-input
+                                                 gap-pending-pointer
+                                                 (+ 1 x gap-pending-pointer)))
+                  (setq gap-pending-pointer (+ 1 x gap-pending-pointer)))
+              (set-process-filter proc 'gap-output-filter)
+              (gap-process-mode)
+              (comint-send-string proc (substring gap-pending-input
+                                                  gap-pending-pointer))
+              (setq gap-pending-input nil)))))
     (set-buffer cbuf)))
 (defun gap-output-filter (proc string)
   "This function handles the output from a GAP process most of the time.
@@ -217,27 +217,27 @@ when GAP will be trying to complete a symbol before point."
      ((eq gap-send-state 'echo)
       (set-buffer (process-buffer proc))
       (let ((x (string-match "\n" string)))
- (if x
+        (if x
      (progn
        (setq gap-send-state 'normal)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; NOTE: this section is only needed for NTEmacs
-;       (insert (string-strip-chars string                        ;;GEZ: NTEmacs: get back 1st line of output
-;                                          "\C-g\C-h\C-m"))             ;;GEZ: NTEmacs: get back 1st line of output
-;; NOTE: end NTEmacs specific code
+;;; NOTE: this section is only needed for NTEmacs
+;;;       (insert (string-strip-chars string                        ;;GEZ: NTEmacs: get back 1st line of output
+;;;                                          "\C-g\C-h\C-m"))             ;;GEZ: NTEmacs: get back 1st line of output
+;;; NOTE: end NTEmacs specific code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
        (insert (string-strip-chars (substring string (+ x 1))    ;;GEZ: original
                                           "\C-g\C-h\C-m"))              ;;GEZ: original
-       (set-marker (process-mark proc) (point))))))
+              (set-marker (process-mark proc) (point))))))
      ((eq gap-send-state 'completing)
       (let ((x (string-match "\C-g" string)))
- (if x  ;; GAP beeped on completing: now ask for all completions
-     (progn
-       (if gap-process-beep (beep))
-       (insert (string-strip-chars string " \C-h\C-g\C-m"))
-       (gap-complete t)
-       (setq gap-send-state 'normal))
-   (insert (string-strip-chars string " \C-h\C-g\C-m"))))))
+        (if x  ;; GAP beeped on completing: now ask for all completions
+            (progn
+              (if gap-process-beep (beep))
+              (insert (string-strip-chars string " \C-h\C-g\C-m"))
+              (gap-complete t)
+              (setq gap-send-state 'normal))
+          (insert (string-strip-chars string " \C-h\C-g\C-m"))))))
     (set-buffer cbuf)))
 (defun gap-help-filter (proc string)
   "This output filter pipes the output of a help command into a *Help* buffer.
@@ -253,27 +253,27 @@ the output until it is done."
     (if (re-search-forward
          "  -- <space> page, <n> next line, <b> back, <p> back line, <q> quit --"
          nil t
-        )                    ;;GEZ: Add to handle GAP 4.4.x output
+         )                    ;;GEZ: Add to handle GAP 4.4.x output
         (progn
           (delete-region (match-beginning 0) (point))
           (comint-send-string proc " ")))                           ;;NOTE: tell GAP to continue with next page
 
-    ;(if (looking-at gap-prompt-regexp)                             ;;GEZ: original
-     (if (looking-at (concat gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
+                                        ;(if (looking-at gap-prompt-regexp)                             ;;GEZ: original
+    (if (looking-at (concat gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
         (progn
           (delete-region (point) (point-max))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; NOTE: this section is only needed for NTEmacs
-   (goto-char (point-min))
+;;; NOTE: this section is only needed for NTEmacs
+          (goto-char (point-min))
           (while (re-search-forward
                   "gap: 'ioctl' could not turn off raw mode!\n" nil t)
             (replace-match ""))
-;; NOTE: end NTEmacs specific code
+;;; NOTE: end NTEmacs specific code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           (goto-char (point-min))
-   (while (re-search-forward
+          (while (re-search-forward
                   "^\\( *\^H\\)\\|\\(\C-m\\)" nil t)              ;;GEZ: get rid of ^H ^H and ^M
-     (replace-match ""))
+            (replace-match ""))
           (set-process-filter proc 'gap-output-filter)))
     (set-buffer cbuf)))
 
@@ -287,31 +287,31 @@ a *Completions* buffer."
     (insert (string-strip-chars string "\C-g\C-m\C-h"))
     (beginning-of-line)
     (if (looking-at (concat gap-prompt-regexp ".*"
-       gap-completion-ident
-       (make-string (length gap-completion-ident)
-      (string-to-char " "))))
+                            gap-completion-ident
+                            (make-string (length gap-completion-ident)
+                                         (string-to-char " "))))
         (progn
           (delete-region (point) (point-max))
-   (let ((win (get-buffer-window (current-buffer)))
-  (lines (count-lines (point-min) (point)))
-  p1 rect)
-     (if (not
-   (and gap-complete-double-cols
-        (or (and win
-          (> lines (window-height win))
-          (> (window-width win) 79))
-     (not (eq gap-complete-double-cols t)))))
-  nil
-       (forward-line (- 1 (/ lines 2)))
-       (beginning-of-line)
-       (setq p1 (point))
-       (goto-char (point-max))
-       (insert (make-string (- 39 (move-to-column 39)) ? ))
-       (setq rect (delete-extract-rectangle p1 (point)))
-       (goto-char (point-min)) (forward-line 1)
-       (insert (make-string (- 39 (move-to-column 39)) ? ))
-       (insert-rectangle rect)))
-   (set-process-filter proc 'gap-output-filter)))
+          (let ((win (get-buffer-window (current-buffer)))
+                (lines (count-lines (point-min) (point)))
+                p1 rect)
+            (if (not
+                 (and gap-complete-double-cols
+                      (or (and win
+                               (> lines (window-height win))
+                               (> (window-width win) 79))
+                          (not (eq gap-complete-double-cols t)))))
+                nil
+              (forward-line (- 1 (/ lines 2)))
+              (beginning-of-line)
+              (setq p1 (point))
+              (goto-char (point-max))
+              (insert (make-string (- 39 (move-to-column 39)) ? ))
+              (setq rect (delete-extract-rectangle p1 (point)))
+              (goto-char (point-min)) (forward-line 1)
+              (insert (make-string (- 39 (move-to-column 39)) ? ))
+              (insert-rectangle rect)))
+          (set-process-filter proc 'gap-output-filter)))
     (set-buffer cbuf)))
 (defun gap-complete (&optional full)
   "Complete the partial identifier preceeding point. With arg, send two
@@ -319,61 +319,61 @@ TABs to GAP to get a full list of the completions."
   (interactive "*")
   (let ((process (get-buffer-process gap-process-buffer)))
     (if (not (gap-running-p))
- (error "No GAP process running in buffer %s" gap-process-buffer))
+        (error "No GAP process running in buffer %s" gap-process-buffer))
     (if (not (looking-at "\\>"))
- (if (not (re-search-forward "\\>" nil t))
-     (error "Complete what?")))
+        (if (not (re-search-forward "\\>" nil t))
+            (error "Complete what?")))
     (setq gap-completion-ident (gap-ident-around-point))
     (if (not full)
- (progn
-   ;;  delete partial identifier from input line
-   (delete-backward-char (length gap-completion-ident))
+        (progn
+          ;;  delete partial identifier from input line
+          (delete-backward-char (length gap-completion-ident))
 
-   ;;  ask for completion and clear input line
-   (setq gap-send-state 'completing)
-   (process-send-string process (concat gap-completion-ident
+          ;;  ask for completion and clear input line
+          (setq gap-send-state 'completing)
+          (process-send-string process (concat gap-completion-ident
                                                "\t\C-x")))
       (setq gap-send-state 'normal)
       (unwind-protect
-   (progn
-     (with-output-to-temp-buffer "*Completions*"
-       (print-help-return-message))
-     (set-process-filter process 'gap-completions-filter)
-     (process-send-string process (concat gap-completion-ident
-       "\t\t\C-x")))))))
+          (progn
+            (with-output-to-temp-buffer "*Completions*"
+              (print-help-return-message))
+            (set-process-filter process 'gap-completions-filter)
+            (process-send-string process (concat gap-completion-ident
+                                                 "\t\t\C-x")))))))
 
 (defun gap-ident-around-point ()
- "Return the identifier around the point as a string."
- (save-excursion
-   (let (beg)
-     (if (not (looking-at "\\(\\>\\|\\w\\)"))
-  ""
-       (re-search-backward "\\<" nil t)
-       (setq beg (point))
-       (re-search-forward "\\>" nil t)
-       (buffer-substring beg (point))))))
+  "Return the identifier around the point as a string."
+  (save-excursion
+    (let (beg)
+      (if (not (looking-at "\\(\\>\\|\\w\\)"))
+          ""
+        (re-search-backward "\\<" nil t)
+        (setq beg (point))
+        (re-search-forward "\\>" nil t)
+        (buffer-substring beg (point))))))
 (defun gap-help (topic arg)
   "Display GAP help about TOPIC in the *Help* buffer."
   (interactive
    (let ((enable-recursive-minibuffers t)
-  (try-word (gap-ident-around-point))
-  val)
+         (try-word (gap-ident-around-point))
+         val)
      (if (string-equal try-word "gap>")
-  (setq val (read-string "GAP topic: "))
+         (setq val (read-string "GAP topic: "))
        (setq val (read-string (format "GAP topic (default %s): "
-          try-word)))
+                                      try-word)))
        (if (string-equal val "")
-    (setq val try-word)))
+           (setq val try-word)))
      (list val current-prefix-arg)))
   (let ((process (get-buffer-process gap-process-buffer)))
     (if (not (gap-running-p))
- (error "No gap process running in buffer %s" gap-process-buffer))
+        (error "No gap process running in buffer %s" gap-process-buffer))
     (unwind-protect
- (progn
-   (with-output-to-temp-buffer "*Help*"
-     (print-help-return-message))
+        (progn
+          (with-output-to-temp-buffer "*Help*"
+            (print-help-return-message))
           (set-process-filter process 'gap-help-filter)
-   (process-send-string process (concat "?" topic "\n"))))))
+          (process-send-string process (concat "?" topic "\n"))))))
 
 (defun get-start-process (progm &optional name dir args startfile)
   "Run program PROGM in buffer *NAME* (or if NAME is nil use *PROGM*).
@@ -385,23 +385,23 @@ containing initial standard input to process."
   (setq name (or name (file-name-nondirectory progm)))
   (setq buffname (concat "*" name "*"))
   (cond ((not (comint-check-proc buffname))
-  (let ((buff (get-buffer-create buffname)))
-    (set-buffer buff)
-    (switch-to-buffer buff)
-    (if dir (cd dir))
-    (apply 'make-comint name progm startfile args)))
- (t
-  (switch-to-buffer buffname)
-  (get-buffer buffname))))
+         (let ((buff (get-buffer-create buffname)))
+           (set-buffer buff)
+           (switch-to-buffer buff)
+           (if dir (cd dir))
+           (apply 'make-comint name progm startfile args)))
+        (t
+         (switch-to-buffer buffname)
+         (get-buffer buffname))))
 (defun string-strip-chars (string strip)
   "Take STRING and remove characters in STRIP"
   (while (> (length strip) 0)
     (let ((pos 0))
       (setq pos (string-match (substring strip 0 1) string pos))
       (while (not (eq pos nil))
- (setq string (concat (substring string 0 pos)
-        (substring string (+ pos 1))))
- (setq pos (string-match (substring strip 0 1) string pos)))
+        (setq string (concat (substring string 0 pos)
+                             (substring string (+ pos 1))))
+        (setq pos (string-match (substring strip 0 1) string pos)))
       (setq strip (substring strip 1))))
   string)
 
