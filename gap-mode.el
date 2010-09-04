@@ -87,6 +87,7 @@
 ;;! Autoload functions from gap-process.
 (autoload 'gap-help "gap-process" nil t)
 (autoload 'gap-complete "gap-process" nil t)
+
 ;;{{{ defcustoms/defvars
 
 (defgroup gap nil
@@ -273,7 +274,6 @@ of communicating with a running gap process."
      (2 "w")
      (3 "\""))))
 
-
 ;; (defvar gap-font-lock-keywords
 (setq gap-font-lock-keywords
   `(;; Figure out how to get special font-locking of special comments
@@ -317,7 +317,6 @@ of communicating with a running gap process."
     ;; TODO: could use an eval form to scan the buffer for funcion
     ;; declarations and mark them...
     ))
-
 
 (defvar gap-mode-map
   (let ((map (make-sparse-keymap)))
@@ -566,8 +565,6 @@ Otherwise indent the line intelligently by calling gap-indent-line"
       (goto-char p)
       (exchange-point-and-mark))))
 
-
-
 (defun gap-format-buffer ()
   (interactive)
   (set-mark (point-max))
@@ -588,7 +585,6 @@ may be invoked within a local function definition to generate a local
 statement for that function.
 "
   ;; Not very efficient, but it seems to work
-
   (interactive)
   (let (p1 p2
            (formal nil)
@@ -695,7 +691,6 @@ there is no local variable statement yet, signals error."
             (format gap-insert-debug-string name) "\" );")
     (backward-char 3)))
 
-
 (defun gap-completion (&optional full)
   "Try to complete word at point. Will simply call dynamic abbreviation command
 if gap-use-dabbrev is non-nil. Otherwise contact a running gap process to
@@ -760,6 +755,7 @@ If TERMINATE is t, then don't check any later ones if matched.")
     (let (beg)
       (if (not (looking-at "\\(\\>\\|\\w\\)"))
           ""
+        (forward-char 1)
         (re-search-backward "\\<" nil t)
         (setq beg (point))
         (re-search-forward "\\>" nil t)
