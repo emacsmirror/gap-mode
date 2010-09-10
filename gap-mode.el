@@ -619,13 +619,17 @@ each comment line if `gap-auto-indent-comments' is non-nil."
 ;; TODO: perhaps make an option to "refresh" the local statement
 (defun gap-insert-local-variables (&optional regenerate)
   "Insert a local variable statement for the current function.
+With `prefix-arg' regenerate an existing local statement or
+insert a new one.
 
-With `prefix-arg' regenerate any current local statement.
-
-The local statement is inserted before the line the cursor is on.  This
-function assumes that a variable is local if occurs on the left-hand side
-of an assignment statement or occurs as the index variable of a do loop.
-You may have to trim globals from the list if you assign values to them.
+If `gap-local-statements-at-beginning' is non-nil the local
+statement is inserted on the first line after the argument list
+of the function definition.  Otherwise the local statement is
+inserted before the line the cursor is on.  This function assumes
+that a variable is local if occurs on the left-hand side of an
+assignment statement or occurs as the index variable of a do
+loop.  You may have to trim globals from the list if you assign
+values to them.
 
 This function will skip over any embedded local function declarations, and
 may be invoked within a local function definition to generate a local
