@@ -206,6 +206,13 @@ of spaces after each comma."
   :type '(list integer integer)
   :safe t)
 
+(defcustom gap-local-statements-at-beginning nil
+  "If non-nil then local variable statements should be inserted
+on first line of a function instead of the previous line."
+  :group 'gap
+  :type 'boolean
+  :safe t)
+
 (defcustom gap-local-statement-margin (if fill-column fill-column 75)
   "Column at which to wrap local variable statement."
   :group 'gap
@@ -669,7 +676,11 @@ Formatting of the local statement is determined by
             (setq names (append names (list name))))))
     (save-excursion
       ;; Goto to insertion point
-      (beginning-of-line)
+      (if (not gap-local-statements-at-beginning)
+          (beginning-of-line)
+        (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t)
+        (forward-sexp 2)
+        (forward-line))
       (when regenerate
         (let ((p (point)))
           ;; Search forwards then backwards for local command.
