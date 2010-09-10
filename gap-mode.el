@@ -741,15 +741,21 @@ there is no local variable statement yet, signals error."
          (setq val try-word))
      (list val)))
   (save-excursion
-    (let ((pos (point)))
+    (let ((pos (point))
+          local-start)
       (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1)
       (goto-char (match-end 0))
       (gap-find-matching "\\<function\\>" "\\<local\\>" "\\<function\\>" t)
       (if (not (looking-at "local"))
           (error "No local statement. Add one first.")
+        (setq local-start (point))
         (gap-search-forward-end-stmt pos 1 'end)
         (forward-char -1)
-        (insert ", " ident)))))
+        (if (save-excursion
+              (re-search-backward (concat "\\<" ident "\\>")
+                                  local-start t))
+            (error "The variable '%s' is already in the local statement." ident)
+          (insert ", " ident))))))
 
 (defun gap-insert-debug-print ()
   "Insert a print statement for debugging purposes.
