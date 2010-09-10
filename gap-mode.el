@@ -391,6 +391,7 @@ of communicating with a running gap process."
         ))
     map))
 
+;; TODO: make beginning/end-of-defun commands and block commands
 (define-derived-mode gap-mode fundamental-mode "GAP"
   "Major mode for writing Gap programs.  The following keys are defined:
 
@@ -523,7 +524,8 @@ enabled by `gap-debug-indent'."
           nil
         (indent-to-left-margin)
         (indent-to ind))))
-  (if (= (current-column) 0)
+  (if (< (current-column)
+         (save-excursion (back-to-indentation) (current-column)))
       (back-to-indentation)))
 
 (defun gap-indent-command (col)
@@ -1286,6 +1288,8 @@ This is a subr in Emacs 19."
   y)
 
 ;;}}}
+
+(provide 'gap-mode)
 
 ;;! Emacs Variables:
 ;; Local Variables:
