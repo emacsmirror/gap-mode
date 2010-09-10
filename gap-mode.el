@@ -610,8 +610,10 @@ each comment line if `gap-auto-indent-comments' is non-nil."
 
 ;; TODO: make an option to put this at the beginning of the function
 ;; TODO: perhaps make an option to "refresh" the local statement
-(defun gap-insert-local-variables ()
+(defun gap-insert-local-variables (&optional regenerate)
   "Insert a local variable statement for the current function.
+
+With `prefix-arg' regenerate any current local statement.
 
 The local statement is inserted before the line the cursor is on.  This
 function assumes that a variable is local if occurs on the left-hand side
@@ -625,10 +627,11 @@ statement for that function.
 Formatting of the local statement is determined by
 `gap-local-statement-format' and `gap-local-statement-margin'."
   ;; Not very efficient, but it seems to work
-  (interactive)
+  (interactive "P")
   (let ((formal nil)
         (names nil)
         p1 p2 name)
+    ;; Find variables
     (save-excursion
       (if (not (gap-find-matching "\\<function\\>" "\\<end\\>" nil t t))
           (error "no end of function!"))
@@ -664,30 +667,47 @@ Formatting of the local statement is determined by
               (t (error "gap-insert-local-variables incorrect code!")))
         (if (not (memberequal name names))
             (setq names (append names (list name))))))
-    (beginning-of-line)
-    (let (lnames)
-      (while (car names)
-        (if (memberequal (car names) formal)
-            (setq names (cdr names))
-          (setq lnames (append lnames (list (car names))))
-          (setq names (cdr names))))
-      (if (not lnames)
-          (error "No local variables!")
-        (insert "local")
-        (insert-char ?  (nth 0 gap-local-statement-format))
-        (gap-indent-line)
-        (while (car lnames)
-          (if (< (+ (current-column) (length (car lnames)))
-                 gap-local-statement-margin)
-              (insert (car lnames))
-            (insert "\n" (car lnames))
-            (gap-indent-line))
-          (setq lnames (cdr lnames))
-          (if lnames
-              (progn
-                (insert ",")
-                (insert-char ?  (nth 1 gap-local-statement-format)))))
-        (insert ";\n")))))
+    (save-excursion
+      ;; Goto to insertion point
+      (beginning-of-line)
+      (when regenerate
+        (let ((p (point)))
+          ;; Search forwards then backwards for local command.
+          ;; For some reason the other dirction doesn't work
+          (gap-find-matching "\\<function\\>" "\\<end\\>" "\\<local\\>" t t) ; goto begin
+          (when (looking-at "end")
+            (gap-find-matching "\\<function\\>" "\\<end\\>" "\\<local\\>" -1 t))
+          ;; If we found a local statement, delete it, else return to where we were
+          (if (looking-at "local")
+              (progn (zap-to-char 1 ?\;)
+                     ;; Delete a "newline" since we are going to insert it
+                     (when (looking-at "\\s \\|$")
+                       (delete-char 1)))
+            (goto-char p))))
+      ;; Insert the local statement (if any)
+      (let (lnames)
+        (while (car names)
+          (if (memberequal (car names) formal)
+              (setq names (cdr names))
+            (setq lnames (append lnames (list (car names))))
+            (setq names (cdr names))))
+        (if (not lnames)
+            (error "No local variables!")
+          (insert "local")
+          (insert-char ?  (nth 0 gap-local-statement-format))
+          (gap-indent-line)
+          (while (car lnames)
+            (if (< (+ (current-column) (length (car lnames)))
+                   gap-local-statement-margin)
+                (insert (car lnames))
+              (insert "\n" (car lnames))
+              (gap-indent-line))
+            (setq lnames (cdr lnames))
+            (if lnames
+                (progn
+                  (insert ",")
+                  (insert-char ?  (nth 1 gap-local-statement-format)))))
+          (insert ";\n"))))))
 
 ;; TODO: add an option to automatically insert the local statement if not found.
 (defun gap-add-local-variable (ident)
