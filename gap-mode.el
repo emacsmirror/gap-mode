@@ -694,10 +694,12 @@ Formatting of the local statement is determined by
             (gap-find-matching "\\<function\\>" "\\<end\\>" "\\<local\\>" -1 t))
           ;; If we found a local statement, delete it, else return to where we were
           (if (looking-at "local")
-              (progn (zap-to-char 1 ?\;)
-                     ;; Delete a "newline" since we are going to insert it
-                     (when (looking-at "\\s \\|$")
-                       (delete-char 1)))
+              (delete-region (point)
+                             (progn (gap-search-forward-end-stmt p2 1 'end)
+                                    ;; Delete a "newline" since we are going to insert it
+                                    (when (looking-at "\\s \\|$")
+                                      (forward-char 1))
+                                    (point)))
             (goto-char p))))
       ;; Insert the local statement (if any)
       (let (lnames)
