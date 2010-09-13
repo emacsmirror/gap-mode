@@ -472,6 +472,8 @@ end;"
        'gap-indent-line)
   (setq indent-tabs-mode nil)
   (setq comment-start "#")
+  (setq beginning-of-defun-function 'gap-beginning-of-defun)
+  (setq end-of-defun-function 'gap-end-of-defun)
   (setq tab-stop-list gap-tab-stop-list))
 
 ;;}}}
@@ -839,6 +841,41 @@ or end of a group that the point is on, otherwise just insert a % symbol."
   (interactive "p")
   (if (not (gap-match-group))
       (self-insert-command (or arg 1))))
+
+;; This seems really innefficient and inelegent, but it's fast enough
+;; OMM, so I'm going to stick with it
+(defun gap-beginning-of-defun (&optional arg)
+  "Function to use for `beginning-of-defun-function'."
+  (interactive "^p")
+  (let ((p (point)))
+    (while (save-excursion
+             (and (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t)
+                  ;; (sit-for 1)
+                  (looking-at "function\\s *(")
+                  (or (forward-char 1) t)   ; just so we don't match the same
+                  (gap-find-matching "\\<function\\>" "\\<end\\>" nil t t)
+                  ;; (sit-for 1)
+                  (> (point) p)             ; We have to enclose the point we are at
+                  (setq p (point))))
+      (goto-char p)
+      (forward-char 4)
+      ;; Work our way out to the outermost
+      ;; (beginning-of-line)
+      ;; (sit-for 1)
+      ))
+  (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t)
+  (beginning-of-line))
+
+(defun gap-end-of-defun ()
+  "Function to use for `end-of-defun-function'."
+  ;; Skip past the function statement, so that the searching will find
+  ;; the end of this function definition
+  (gap-search-forward-end-stmt nil 1 'end)
+  (if (gap-find-matching "\\<function\\>" "\\<end\\>" nil t t)
+      (gap-search-forward-end-stmt nil 1 'end)
+    (goto-char (point-max)))
+  (when (looking-at "\\s *$")
+    (forward-line 1)))
 
 ;;}}}
 ;;{{{ indentaton functions and variables
