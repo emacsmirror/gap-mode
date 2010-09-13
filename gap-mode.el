@@ -269,13 +269,13 @@ of communicating with a running gap process."
     (modify-syntax-entry ?>  "." table)
     ;; TODO: make sure this comment is correct, or just make . into punctuation
     ;; Symbol (sort of a hack so that x.y is a single symbol for help purposes)
-    ;; We will put make .. punctuation later
+    ;; We will make .. into punctuation later
     (modify-syntax-entry ?.  "_" table)
     table)
   "Syntax table used while in gap mode.")
 
 (defvar gap-font-lock-syntactic-keywords
-  `(("\\.\\." 0 ".")              ; Make .. into puctuation
+  '(("\\.\\." 0 ".")              ; Make .. into puctuation
     ("\\\\."  0 "_")              ; Make \character a symbol character
     ;; Make 'c' and '\n' into strings
     ("\\('\\)\\([^\\]\\|\\\\.\\)\\('\\)"
@@ -312,7 +312,7 @@ of communicating with a running gap process."
      . font-lock-builtin-face)
 
     ;; Functions -- based on capitalization and proximity to parenthesis
-    ("\\_<\\([A-Z]\\(?:\\w\\|\\s_\\)+\\)\\s *(" 1 font-lock-function-name-face t)
+    ("\\_<\\([A-Z]\\(?:\\w\\|\\s_\\)+\\)\\s *(" 1 font-lock-function-name-face nil)
 
     ;; Functions -- based on assignment
     ("\\_<\\(\\(?:\\w\\|\\s_\\)+\\)\\s *:=\\s *\\(function\\)"
