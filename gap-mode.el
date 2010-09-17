@@ -283,8 +283,7 @@ of communicating with a running gap process."
      (2 "w")
      (3 "\""))))
 
-;; (defvar gap-font-lock-keywords
-(setq gap-font-lock-keywords
+(defvar gap-font-lock-keywords
   `(;; Figure out how to get special font-locking of special comments
     ;; ("^#[ACFMROPV#]\\(.*\\)" . font-lock-doc-string-face)
     ;; ("^#I\\(.*\\)" . font-lock-doc-string-face)
@@ -316,7 +315,7 @@ of communicating with a running gap process."
 
     ;; Functions -- based on assignment
     ("\\_<\\(\\(?:\\w\\|\\s_\\)+\\)\\s *:=\\s *\\(function\\)"
-     (1 font-lock-function-name-face t)
+     (1 font-lock-function-name-face)
      (2 font-lock-keyword-face)) ; Shouldn't funcion already be highlighted?
 
     ;; Variables as they are assigned
@@ -470,11 +469,13 @@ end;"
                                  . gap-font-lock-syntactic-keywords)))
   (set (make-local-variable 'indent-line-function)
        'gap-indent-line)
+  (set (make-local-variable 'beginning-of-defun-function)
+       'gap-beginning-of-defun)
+  (set (make-local-variable 'end-of-defun-function)
+       'gap-end-of-defun)
+  (set (make-local-variable 'comment-start) "#")
   (setq indent-tabs-mode nil)
-  (setq comment-start "#")
-  (setq beginning-of-defun-function 'gap-beginning-of-defun)
-  (setq end-of-defun-function 'gap-end-of-defun)
-  (setq tab-stop-list gap-tab-stop-list))
+  (set (make-local-variable 'tab-stop-list) gap-tab-stop-list))
 
 ;;}}}
 ;;{{{ user commands
