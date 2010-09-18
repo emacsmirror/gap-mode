@@ -691,7 +691,8 @@ Formatting of the local statement is determined by
       (when regenerate
         (let ((p (point)))
           ;; Search forwards then backwards for local command.
-          ;; For some reason the other dirction doesn't work
+          ;; For some reason the other direction doesn't work
+          ;; TODO: should take a page from gap-add-local-variable
           (gap-find-matching "\\<function\\>" "\\<end\\>" "\\<local\\>" t t) ; goto begin
           (when (looking-at "end")
             (gap-find-matching "\\<function\\>" "\\<end\\>" "\\<local\\>" -1 t))
@@ -844,28 +845,47 @@ or end of a group that the point is on, otherwise just insert a % symbol."
       (self-insert-command (or arg 1))))
 
 ;; This seems really innefficient and inelegent, but it's fast enough
-;; OMM, so I'm going to stick with it
+;; OMM, so I'm going to stick with it for now
 (defun gap-beginning-of-defun (&optional arg)
   "Function to use for `beginning-of-defun-function'."
   (interactive "^p")
+  ;; move inside the function definition if at the beginning of a line
+  (end-of-line)
+  ;; If we are not inside a defun, then skip to the inside of the previous one
+  (and (not (save-excursion
+              (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t)))
+       (gap-find-matching "\\<function\\>" "\\<end\\>" "\\<end\\>" -1 t)
+       (backward-char 1))
+  ;; Work our way out to the outermost block
   (let ((p (point)))
     (while (save-excursion
              (and (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t)
-                  ;; (sit-for 1)
                   (looking-at "function\\s *(")
                   (or (forward-char 1) t)   ; just so we don't match the same
                   (gap-find-matching "\\<function\\>" "\\<end\\>" nil t t)
-                  ;; (sit-for 1)
                   (> (point) p)             ; We have to enclose the point we are at
                   (setq p (point))))
       (goto-char p)
       (forward-char 4)
-      ;; Work our way out to the outermost
-      ;; (beginning-of-line)
-      ;; (sit-for 1)
       ))
-  (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t)
-  (beginning-of-line))
+  (backward-char 4)
+  ;; We are at end of function
+  ;; Handle moving forward
+  (while (and (< arg 0)
+              (gap-search-forward-end-stmt nil 1 'end) ; Move past end
+              (gap-find-matching "\\<function\\>" "\\<end\\>" "\\<function\\>" t t)
+              (gap-match-group))
+    (setq arg (1+ arg)))
+  ;; Goto beginning of function
+  (gap-match-group)
+  ;; Handle moving backwards
+  (while (and (> arg 1)
+              (gap-find-matching "\\<function\\>" "\\<end\\>" "\\<end\\>" -1 t)
+              (gap-match-group))
+    (setq arg (1- arg)))
+  (beginning-of-line)
+  ;; Signal that we found one
+  t)
 
 (defun gap-end-of-defun ()
   "Function to use for `end-of-defun-function'."
