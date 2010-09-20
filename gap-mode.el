@@ -1016,28 +1016,6 @@ See `gap-strip-line-of-comments' and `gap-strip-line-of-strings'."
                   (re-search-forward "[\n\C-m]" limit ret)
                 nil))))
 
-(defun gap-debug-inform (base ind prev this &optional note)
-  "Print statement detailing why the current line is indented as it is."
-  (message
-   (concat (if base (format "Base:%d  " base))
-           (if ind (format "Ind:%d  " ind))
-           (if prev (format "Prev:|%s|  "
-                            (if (< (length prev) 20)
-                                prev
-                              (concat (substring prev 0 9) "..."
-                                      (substring prev -9)))))
-           (if this (format "This:|%s|"
-                            (if (< (length this) 20)
-                                this
-                              (concat (substring this 0 9) "..."
-                                      (substring this -9)))))
-           (if note (format "  (%s)" note))
-           )))
-
-
-
-
-
 (defun end-of-line-from-point (&optional p)
   "Return point at end of current line."
   (save-excursion
@@ -1093,6 +1071,13 @@ were at that buffer position. "
   (- (point)
      (beg-of-line-from-point)))
 
+;;! Fix member function?!
+(defun memberequal (x y)
+  "Like memq, but uses `equal' for comparison.
+This is a subr in Emacs 19."
+  (while (and y (not (equal x (car y))))
+    (setq y (cdr y)))
+  y)
 
 ;; Note- for the purposes of indentation calculations, the following
 ;; statement segments are considered to be fully contained statements:
@@ -1107,56 +1092,23 @@ were at that buffer position. "
 ;;    fi;
 
 
-;; Gap group beginning-end matching
-
-(defun gap-find-matching (breg ereg &optional also forw noerr)
-  ;; if regexp also, then also stop on it if found
-  ;; if forw it t, then match forward instead of trying to figure it out
-  ;; if forw is -1, then match backward instead of figuring it out
-  ;; if noerr, just return nil
-  (let ((p (point))
-        (searcher 're-search-forward)
-        (inc breg)  ;; Everytime we see this, increment counter
-        (dec ereg)  ;; Everytime we see this, decrement counter
-        (c 1)
-        (d t) ;; d=t => direction forward
-        (p1 (point)))
-    (cond ((eq forw nil)
-           (cond ((or (looking-at breg) (and also (looking-at also)))
-                  (setq p1 (match-end 0)))
-                 ((looking-at ereg)
-                  (setq p1 (match-beginning 0))
-                  (setq searcher 're-search-backward
-                        inc ereg
-                        dec breg
-                        d nil))))
-          ((eq forw -1)
-           (setq p1 (point))
-           (setq searcher 're-search-backward
-                 inc ereg
-                 dec breg
-                 d nil)))
-    (goto-char p1)
-    (while (and (> c 0) (apply searcher (concat "\\(" breg "\\|" ereg
-                                                (if also "\\|") also "\\)")
-                               nil t nil))
-      (setq p1 (match-beginning 0))
-      (if (not (gap-point-in-comment-string))
-          (save-excursion
-            (goto-char p1)
-            (if (and (= c 1) also (looking-at also))
-                (setq c 0)
-              (setq c (+ c (cond ((looking-at inc) 1)
-                                 ((looking-at dec) -1)
-                                 (t 0)))))
-            (if (= c 0) (setq p (point))))))
-    (if (not (= c 0))
-        (if noerr
-            (setq p nil)
-          (error "No match!"))
-      (goto-char p))
-    p))
-
+(defun gap-debug-inform (base ind prev this &optional note)
+  "Print statement detailing why the current line is indented as it is."
+  (message
+   (concat (if base (format "Base:%d  " base))
+           (if ind (format "Ind:%d  " ind))
+           (if prev (format "Prev:|%s|  "
+                            (if (< (length prev) 20)
+                                prev
+                              (concat (substring prev 0 9) "..."
+                                      (substring prev -9)))))
+           (if this (format "This:|%s|"
+                            (if (< (length this) 20)
+                                this
+                              (concat (substring this 0 9) "..."
+                                      (substring this -9)))))
+           (if note (format "  (%s)" note))
+           )))
 
 
 (defun gap-calculate-indent ()
@@ -1201,7 +1153,6 @@ were at that buffer position. "
 
       ;; return the indentation
       ind)))
-
 
 (defun gap-calc-new-stmt (this-stmt this-beg this-end last-stmt
                                     last-beg last-end)
@@ -1358,6 +1309,53 @@ groups in the regexp. eg use '(match-beginning 0)."
                 return t))))
     return))
 
+(defun gap-find-matching (breg ereg &optional also forw noerr)
+  ;; if regexp also, then also stop on it if found
+  ;; if forw it t, then match forward instead of trying to figure it out
+  ;; if forw is -1, then match backward instead of figuring it out
+  ;; if noerr, just return nil
+  (let ((p (point))
+        (searcher 're-search-forward)
+        (inc breg)  ;; Everytime we see this, increment counter
+        (dec ereg)  ;; Everytime we see this, decrement counter
+        (c 1)
+        (d t) ;; d=t => direction forward
+        (p1 (point)))
+    (cond ((eq forw nil)
+           (cond ((or (looking-at breg) (and also (looking-at also)))
+                  (setq p1 (match-end 0)))
+                 ((looking-at ereg)
+                  (setq p1 (match-beginning 0))
+                  (setq searcher 're-search-backward
+                        inc ereg
+                        dec breg
+                        d nil))))
+          ((eq forw -1)
+           (setq p1 (point))
+           (setq searcher 're-search-backward
+                 inc ereg
+                 dec breg
+                 d nil)))
+    (goto-char p1)
+    (while (and (> c 0) (apply searcher (concat "\\(" breg "\\|" ereg
+                                                (if also "\\|") also "\\)")
+                               nil t nil))
+      (setq p1 (match-beginning 0))
+      (if (not (gap-point-in-comment-string))
+          (save-excursion
+            (goto-char p1)
+            (if (and (= c 1) also (looking-at also))
+                (setq c 0)
+              (setq c (+ c (cond ((looking-at inc) 1)
+                                 ((looking-at dec) -1)
+                                 (t 0)))))
+            (if (= c 0) (setq p (point))))))
+    (if (not (= c 0))
+        (if noerr
+            (setq p nil)
+          (error "No match!"))
+      (goto-char p))
+    p))
 
 (defun gap-search-back-end-stmt (limit ret goto)
   "This function searches backward from point for the end of a gap
@@ -1398,14 +1396,6 @@ statement, making sure to skip over comments and strings."
                 (> (point) (point-min)))
       (forward-char -1))
     t))
-
-;;! Fix member function?!
-(defun memberequal (x y)
-  "Like memq, but uses `equal' for comparison.
-This is a subr in Emacs 19."
-  (while (and y (not (equal x (car y))))
-    (setq y (cdr y)))
-  y)
 
 ;;}}}
 
