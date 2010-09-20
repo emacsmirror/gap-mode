@@ -901,29 +901,33 @@ or end of a group that the point is on, otherwise just insert a % symbol."
 ;;}}}
 ;;{{{ indentaton functions and variables
 
-(setq gap-end-of-statement
-      (concat "\\(;\\|\\<then\\>\\|\\<else\\>\\|\\<do\\>\\|"
-              "\\<repeat\\>\\|\\<function\\>.*(.*)\\)"))
+(defvar gap-end-of-statement
+  (concat "\\(;\\|\\<then\\>\\|\\<else\\>\\|\\<do\\>\\|"
+          "\\<repeat\\>\\|\\<function\\>.*(.*)\\)")
+  "Regular expression matching the end of a GAP statement.")
 
-(setq gap-increment-indentation-regexp (concat "^[ \t]*\\("
-                                               "if\\>"
-                                               "\\|else\\>"
-                                               "\\|elif\\>"
-                                               "\\|for\\>"
-                                               "\\|while\\>"
-                                               "\\|repeat\\>"
-                                               "\\|.*\\<function\\>"
-                                               "\\)"))
+(defvar gap-increment-indentation-regexp
+  (concat "^[ \t]*\\("
+          "if\\>"
+          "\\|else\\>"
+          "\\|elif\\>"
+          "\\|for\\>"
+          "\\|while\\>"
+          "\\|repeat\\>"
+          "\\|.*\\<function\\>"
+          "\\)")
+  "Regular expression matching a GAP statement which should increase indentation.")
 
-(setq gap-decrement-indentation-regexp (concat "^[ \t]*\\("
-                                               "fi\\>"
-                                               "\\|od\\>"
-                                               "\\|else\\>"
-                                               "\\|elif\\>"
-                                               "\\|until\\>"
-                                               "\\|end\\>"
-                                               "\\)"))
-
+(defvar gap-decrement-indentation-regexp
+  (concat "^[ \t]*\\("
+          "fi\\>"
+          "\\|od\\>"
+          "\\|else\\>"
+          "\\|elif\\>"
+          "\\|until\\>"
+          "\\|end\\>"
+          "\\)")
+  "Regular expression matching a GAP statement which should decrease indentation.")
 
 (defvar gap-continued-special-list
   (list
@@ -944,7 +948,6 @@ the Nth group of the regexp. Take current indentation and add the third
 OFFSET entry).  Take the maximum of values so obtained for each element.
 If TERMINATE is t, then don't check any later ones if matched.")
 
-
 (defun gap-ident-around-point ()
   "Return the identifier around the point as a string."
   (save-excursion
@@ -958,14 +961,15 @@ If TERMINATE is t, then don't check any later ones if matched.")
         (buffer-substring beg (point))))))
 
 (defun gap-point-in-comment-string ()
+  "Returns non-nil if point is inside a comment or string."
   (save-excursion
     (let* ((p (point))
            (line (buffer-substring (beg-of-line-from-point) p)))
       (string-match "\\([^\\\\]\"\\|#\\)"
                     (gap-strip-line-of-strings line)))))
 
-
 (defun gap-point-in-comment ()
+  "Returns non-nil if point is inside a comment."
   (save-excursion
     (let* ((p (point))
            (line (buffer-substring (beg-of-line-from-point) p)))
@@ -973,13 +977,15 @@ If TERMINATE is t, then don't check any later ones if matched.")
 
 
 (defun gap-strip-line-of-strings (line)
+  "Removes GAP strings from LINE."
   (while (string-match "[^\\\\]\\(\"\"\\|\"[^\"]*[^\\\\]\"\\)" line)
     (setq line (concat (substring line 0 (match-beginning 1))
                        (substring line (match-end 1)))))
   line)
 
 (defun gap-strip-line-of-brackets (line)
-  "currently not used."
+  "Removes set of brackets from LINE.
+Currently not used."
   (while (or (string-match "([^()]*)" line)
              (string-match "\\[[^\\[\\]]*\\]" line)
              (string-match "{[^{}]*}" line))
@@ -988,16 +994,17 @@ If TERMINATE is t, then don't check any later ones if matched.")
   line)
 
 (defun gap-strip-line-of-comments (line)
+  "Removes GAP comments from LINE."
   (while (string-match "#.*[\n\C-m]" line)
     (setq line (concat (substring line 0 (match-beginning 0))
                        (substring line (match-end 0)))))
   line)
 
-
 (defun gap-strip-strings-comments (stmt)
+  "Remove GAP strings and comments from the statement.
+See `gap-strip-line-of-comments' and `gap-strip-line-of-strings'."
   (gap-strip-line-of-comments
    (gap-strip-line-of-strings stmt)))
-
 
 (defun gap-skip-forward-to-token (limit ret)
   "Skip forward from point to first character that is not in a comment."
@@ -1009,8 +1016,8 @@ If TERMINATE is t, then don't check any later ones if matched.")
                   (re-search-forward "[\n\C-m]" limit ret)
                 nil))))
 
-
 (defun gap-debug-inform (base ind prev this &optional note)
+  "Print statement detailing why the current line is indented as it is."
   (message
    (concat (if base (format "Base:%d  " base))
            (if ind (format "Ind:%d  " ind))
@@ -1029,7 +1036,10 @@ If TERMINATE is t, then don't check any later ones if matched.")
 
 
 
+
+
 (defun end-of-line-from-point (&optional p)
+  "Return point at end of current line."
   (save-excursion
     (if p (goto-char p))
     (gap-end-of-line)
@@ -1037,26 +1047,35 @@ If TERMINATE is t, then don't check any later ones if matched.")
     (point)))
 
 (defun beg-of-line-from-point (&optional p)
+  "Return at beginning of current line."
   (save-excursion
     (if p (goto-char p))
     (gap-beginning-of-line)
     (point)))
 
 (defun gap-beginning-of-line ()
+  "Go to the beginning of the current line.
+Accounts for selective display (^m)."
   (if (re-search-backward "[\n\C-m]" nil 1)
       (forward-char 1)))
 
 (defun gap-end-of-line ()
+  "Go to the end of the current line.
+Accounts for selective display (^m)."
   (if (re-search-forward "[\n\C-m]" nil 1)
       (forward-char -1)))
 
 (defun lines-indentation (&optional p)
+  "Return number of characters of indentation on the current line.
+With `prefix-arg', return information for the line as if point
+were at that buffer position. "
   (save-excursion
     (if p (goto-char p))
     (+ (- (progn (gap-beginning-of-line) (point)))
        (progn (skip-chars-forward " \t") (point)))))
 
 (defun gap-looking-at (s)
+  "Like looking-at, but accounts for selective display (^m)."
   (save-excursion
     (if (eq (substring s 0 1) "^")
         (progn
@@ -1065,14 +1084,14 @@ If TERMINATE is t, then don't check any later ones if matched.")
     (looking-at s)))
 
 (defun gap-back-to-indentation ()
+  "Go to first before the non indentation character."
   (gap-beginning-of-line)
   (skip-chars-forward " \t"))
 
 (defun gap-current-column ()
+  "Returns the number of characters between point and beginning of line."
   (- (point)
      (beg-of-line-from-point)))
-
-
 
 
 ;; Note- for the purposes of indentation calculations, the following
