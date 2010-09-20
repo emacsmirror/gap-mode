@@ -1112,6 +1112,7 @@ This is a subr in Emacs 19."
 
 
 (defun gap-calculate-indent ()
+  "Calculate indentation of current line."
   (save-excursion
     (gap-beginning-of-line)
     (let ((pos (point))
@@ -1172,6 +1173,7 @@ This is a subr in Emacs 19."
 
 
 (defun gap-calc-continued-stmt (this-stmt this-beg this-end pos)
+  "Calculate indentation for a statement which has been continued from the previous line."
   ;; now check to see if we have a continued line or not
   (save-excursion
     (goto-char this-beg)
@@ -1310,10 +1312,19 @@ groups in the regexp. eg use '(match-beginning 0)."
     return))
 
 (defun gap-find-matching (breg ereg &optional also forw noerr)
-  ;; if regexp also, then also stop on it if found
-  ;; if forw it t, then match forward instead of trying to figure it out
-  ;; if forw is -1, then match backward instead of figuring it out
-  ;; if noerr, just return nil
+  "Search forward to find EREG or backward to find BREG.
+
+Skips over BREG/EREG pairs.  For example, this allows searching
+for the end of the current function definition while ignoring any
+functions defined locally.  If regexp ALSO is defined, then also
+stop on it if found.
+
+If FORW is nil then it will attempt to determine which direction
+to search.  If FORW it t, then match forward instead of trying to
+figure it out, and if FORW is -1, then it will match backward.
+
+If NOERR is non-nil then do not produce an error if nothing is
+found, simply return nil."
   (let ((p (point))
         (searcher 're-search-forward)
         (inc breg)  ;; Everytime we see this, increment counter
