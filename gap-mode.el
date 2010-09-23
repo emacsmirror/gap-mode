@@ -206,6 +206,12 @@ of spaces after each comma."
   :type '(list integer integer)
   :safe t)
 
+(defcustom gap-local-statement-margin (if fill-column fill-column 75)
+  "Column at which to wrap local variable statement."
+  :group 'gap
+  :type 'integer
+  :safe t)
+
 (defcustom gap-local-statements-at-beginning nil
   "If non-nil then local variable statements should be inserted
 on first line of a function instead of the previous line."
@@ -213,10 +219,12 @@ on first line of a function instead of the previous line."
   :type 'boolean
   :safe t)
 
-(defcustom gap-local-statement-margin (if fill-column fill-column 75)
-  "Column at which to wrap local variable statement."
+(defcustom gap-regenerate-local-statements nil
+  "If non-nil then local variable statements will be
+'regenerated' instead if they already exist instead of
+unconditinally inserted."
   :group 'gap
-  :type 'integer
+  :type 'boolean
   :safe t)
 
 (defcustom gap-insert-debug-name "Info"
@@ -618,12 +626,13 @@ each comment line if `gap-auto-indent-comments' is non-nil."
   (goto-char (point-min))
   (gap-format-region))
 
-;; TODO: make an option to put this at the beginning of the function
-;; TODO: perhaps make an option to "refresh" the local statement
-(defun gap-insert-local-variables (&optional regenerate)
+(defun gap-insert-local-variables (&optional arg)
   "Insert a local variable statement for the current function.
-With `prefix-arg' regenerate an existing local statement or
-insert a new one.
+With `prefix-arg' temporarily invert the value of
+`gap-regenerate-local-statements'.
+
+If `gap-regenerate-local-statements' is non-nil then regenerate
+an existing local statement or insert a new one.
 
 If `gap-local-statements-at-beginning' is non-nil the local
 statement is inserted on the first line after the argument list
@@ -644,6 +653,9 @@ Formatting of the local statement is determined by
   (interactive "P")
   (let ((formal nil)
         (names nil)
+        (regenerate (if arg
+                        (not gap-regenerate-local-statements)
+                      gap-regenerate-local-statements))
         p1 p2 name)
     ;; Find variables
     (save-excursion
