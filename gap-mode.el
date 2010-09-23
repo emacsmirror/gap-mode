@@ -903,7 +903,7 @@ or end of a group that the point is on, otherwise just insert a % symbol."
 
 (defvar gap-end-of-statement
   (concat "\\(;\\|\\<then\\>\\|\\<else\\>\\|\\<do\\>\\|"
-          "\\<repeat\\>\\|\\<function\\>.*(.*)\\)")
+          "\\<repeat\\>\\|\\<function\\>[^\0]*([^\0]*)\\)")
   "Regular expression matching the end of a GAP statement.")
 
 (defvar gap-increment-indentation-regexp
