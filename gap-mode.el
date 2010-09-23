@@ -1155,18 +1155,51 @@ This is a subr in Emacs 19."
       ;; return the indentation
       ind)))
 
-(defun gap-calc-new-stmt (this-stmt this-beg this-end last-stmt
-                                    last-beg last-end)
+(defun gap-calc-new-stmt (this-stmt this-beg this-end
+                          last-stmt last-beg last-end)
   "Find indentation for new statement in gap"
-  (let (base ind)
+  (let ((ind 0)
+        (last-was-decr nil)
+        base)
     (goto-char last-beg)
-    (setq base (progn (gap-back-to-indentation) (gap-current-column))
-          ind base)
+    (progn (gap-back-to-indentation) (gap-current-column))
 
+    ;; Indent based on current and previous statements
     (if (string-match gap-increment-indentation-regexp last-stmt)
         (setq ind (+ ind gap-indent-step)))
     (if (string-match gap-decrement-indentation-regexp this-stmt)
         (setq ind (- ind gap-indent-step)))
+
+    ;; We are at the beginning of the previous line
+    (let ((p (point)))
+      (goto-char last-beg)
+      ;; Increment/decrement for all statements on the previous line
+      (while (and (not (eq (point) (save-excursion (gap-back-to-indentation) (point))))
+                  (gap-search-back-end-stmt nil 1 'beg)
+                  (gap-search-back-end-stmt nil 1 'end))
+        (gap-skip-forward-to-token nil t)
+        (let ((str (buffer-substring (point) last-beg)))
+          (if (string-match gap-increment-indentation-regexp str)
+              (setq ind (+ ind gap-indent-step)))
+          (if (string-match gap-decrement-indentation-regexp str)
+              (setq ind (- ind gap-indent-step)
+                    last-was-decr t)
+            (setq last-was-decr nil)))
+        (setq last-beg (point))))
+
+    ;; If the last statement that we saw (working backwards) was a
+    ;; decrement, then we can ignore it since it was already taken
+    ;; into account:
+    ;; if 4>3 then x:= 3;
+    ;; fi; if 4>3 then
+    ;;     x:= 3;
+    ;; fi;
+    (if last-was-decr
+        (setq ind (+ ind gap-indent-step)))
+    ;; Determine the base from the most recent statement which is the
+    ;; first on the line
+    (setq base (progn (gap-back-to-indentation) (gap-current-column))
+          ind (+ base ind))
     (if gap-debug-indent
         (gap-debug-inform base ind last-stmt this-stmt))
     ind))
