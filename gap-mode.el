@@ -872,7 +872,7 @@ or end of a group that the point is on, otherwise just insert a % symbol."
   (let ((p (point)))
     (while (save-excursion
              (and (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t)
-                  (looking-at "function\\s *(")
+                  (looking-at "function[^(]*(")
                   (or (forward-char 1) t)   ; just so we don't match the same
                   (gap-find-matching "\\<function\\>" "\\<end\\>" nil t t)
                   (> (point) p)             ; We have to enclose the point we are at
