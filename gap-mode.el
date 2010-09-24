@@ -901,6 +901,7 @@ or end of a group that the point is on, otherwise just insert a % symbol."
 
 (defun gap-end-of-defun ()
   "Function to use for `end-of-defun-function'."
+  (interactive)
   ;; Skip past the function statement, so that the searching will find
   ;; the end of this function definition
   (gap-search-forward-end-stmt nil 1 'end)
@@ -914,8 +915,12 @@ or end of a group that the point is on, otherwise just insert a % symbol."
 ;;{{{ indentaton functions and variables
 
 (defvar gap-end-of-statement
+  ;; in the function section we use [^(] instead of . so that it will
+  ;; match across lines.  I simply used ( and ) so that there would be
+  ;; some semblance of matching and these are characters which
+  ;; shouldn't be there.
   (concat "\\(;\\|\\<then\\>\\|\\<else\\>\\|\\<do\\>\\|"
-          "\\<repeat\\>\\|\\<function\\>[^\0]*([^\0]*)\\)")
+          "\\<repeat\\>\\|\\<function\\>[^(]*([^)]*)\\)")
   "Regular expression matching the end of a GAP statement.")
 
 (defvar gap-increment-indentation-regexp
