@@ -8,21 +8,21 @@
 ;;!
 ;;
 ;;
-;; Major mode for writing Gap programs.
-;; Provides automatic indentation of Gap code.
+;; Major mode for writing GAP programs.
+;; Provides automatic indentation of GAP code.
 ;;
 ;; Installation:
 ;;   Copy this file to somewhere in your load path, then put the
 ;;   following lines in your .emacs file:
 ;;
-;;      (autoload 'gap-mode "gap-mode" "Gap editing mode" t)
+;;      (autoload 'gap-mode "gap-mode" "GAP editing mode" t)
 ;;      (setq auto-mode-alist (apply 'list
 ;;                                   '("\\.g$" . gap-mode)
 ;;                                   '("\\.gap$" . gap-mode)
 ;;                                   auto-mode-alist))
 ;;
 ;; Then visiting any file ending in ".g" or ".gap" will automatically put
-;; you in Gap-mode.  Alternatively, to enter gap mode at anytime, just type
+;; you in gap-mode.  Alternatively, to enter gap-mode at anytime, just type
 ;;    M-x gap-mode
 ;;
 ;; While in gap-mode, type "C-h m" for help on its features.
@@ -78,7 +78,7 @@
 ;;! v1.10 -
 ;;! * Cleaned up code immensely. Should be much easier to understand.
 ;;! * Fixed some bugs in special indentation checking where it could get
-;;!   confused with the contents of gap strings (eg a ":=" in a string).
+;;!   confused with the contents of GAP strings (eg a ":=" in a string).
 ;;! v1.01 -
 ;;! * Just changed some defaults.
 ;;! v1.00 -
@@ -113,7 +113,7 @@ use this value instead.  nil is equivalent to infinity."
   :safe t)
 
 (defcustom gap-indent-step 4
-  "Amount of extra indentation for each level of grouping in Gap code."
+  "Amount of extra indentation for each level of grouping in GAP code."
   :group 'gap
   :type 'integer
   :safe t)
@@ -140,7 +140,7 @@ If nil then use calculated indentation level only."
   :safe t)
 
 (defcustom gap-indent-comments-flushleft nil
-  "If non-nil then indent comments based on gap-indent-comments regardless
+  "If non-nil then indent comments based on `gap-indent-comments' regardless
 of whether the comment is flush-left or not.  Set this to nil to treat
 flush-left comments as special---i.e. not to be indented by pressing TAB."
   :group 'gap
@@ -186,14 +186,14 @@ indent region command is run."
 (defcustom gap-tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44
                                  48 52 56 60 64 68 72 74 78)
   "Gap-mode tab-stop-list.  Note this is effectively only used in the
-indentation of comments---all gap code indentation depends on the
+indentation of comments---all GAP code indentation depends on the
 variable gap-indent-step."
   :group 'gap
   :type '(sexp)
   :safe t)
 
 (defcustom gap-mode-hook nil
-  "Function to be called after setting gap-mode for buffer."
+  "Function to be called after turning `gap-mode' on for buffer."
   :group 'gap
   :type 'hook
   :safe t)
@@ -244,7 +244,7 @@ A %s is substituted with the name of the current function."
 ;; Then deprecate this
 (defcustom gap-use-dabbrev t
   "If true then the complete command will simply call dabbrev instead
-of communicating with a running gap process."
+of communicating with a running GAP process."
   :group 'gap
   :type 'boolean
   :safe t)
@@ -388,7 +388,7 @@ For format of ths variable see `font-lock-keywords'.")
         "-"
         ;; TODO: get this list
         ["Start interpreter" gap
-         :help "Run `inferior' GAP in separate buffer"]
+         :help "Run inferior GAP in separate buffer"]
         ;; TODO: I need to add these
         ;; ["Eval buffer" python-send-buffer
         ;;  :help "Evaluate buffer en bloc in inferior Python session"]
@@ -411,7 +411,7 @@ For format of ths variable see `font-lock-keywords'.")
 
 ;; TODO: make beginning/end-of-defun commands and block commands
 (define-derived-mode gap-mode fundamental-mode "GAP"
-  "Major mode for writing Gap programs.  The following keys are defined:
+  "Major mode for writing GAP programs.  The following keys are defined:
 
  \\[gap-indent-command]      to intelligently indent current line.
  \\[gap-newline-command]      newline with indentation of current and new line.
@@ -451,8 +451,8 @@ See also the documentation for the variables:
 and documentation for the functions:
   gap-percent-command
 
-The indentation style is demonstrated by the following example, assuming
-default gap indentation variables:
+The indentation style is demonstrated by the following example,
+assuming default indentation variables:
 
 test := function (x,y)
     # this is a test
@@ -551,7 +551,7 @@ enabled by `gap-debug-indent'."
       (back-to-indentation)))
 
 (defun gap-indent-command (col)
-  "Smart Gap mode indent command.
+  "Smart GAP indent command.
 With `prefix-arg' indents this line to column given by argument.
 If line is a comment starting in column 1 then do nothing.
 If point is immediately following a comment character (#) then
@@ -799,7 +799,7 @@ The statement inserted depends on `gap-insert-debug-name' and
   "Try to complete word at point.
 if `gap-use-dabbrev' is non-nil call `dabbrev-expand' (dynamic
 abbreviation).  Otherwise contact a running gap process to get a
-gap completion of the word."
+GAP completion of the word."
   (interactive "*")
   (if gap-use-dabbrev
       (dabbrev-expand full)
@@ -819,7 +819,7 @@ gap completion of the word."
       (insert ? ))))
 
 (defun gap-match-group ()
-  "Gap find matching delimiter function.
+  "Find matching delimiter in GAP
 If point is on a character with bracket syntax, then use built in
 lisp function forward-list to find matching bracket.  Otherwise,
 check to see if point is on the first character of 'do', 'od',
@@ -1344,7 +1344,7 @@ base indentation of the line starting the bracket grouping"
 specifying the character position bounding the search, SILENT to tell
 search routines that they should not signal errors.
   The result is a search that skips matches that occur in comments or
-strings in the gap code.
+strings in the GAP code.
   If MOVE is non-nil the move to the buffer position returned by evaling
 MOVE after each search. This is for moving to the beginning or end of
 groups in the regexp. eg use '(match-beginning 0)."
@@ -1426,7 +1426,7 @@ found, simply return nil."
     p))
 
 (defun gap-search-back-end-stmt (limit ret goto)
-  "This function searches backward from point for the end of a gap
+  "This function searches backward from point for the end of a GAP
 statement, making sure to skip over comments and strings."
   (if (not (gap-searcher 're-search-backward ; searcher to use.
                          gap-end-of-statement ; regular expression.
@@ -1446,7 +1446,7 @@ statement, making sure to skip over comments and strings."
     t))
 
 (defun gap-search-forward-end-stmt (limit ret goto)
-  "This function searches forward from point for the end of a gap
+  "This function searches forward from point for the end of a GAP
 statement, making sure to skip over comments and strings."
   (if (not (gap-searcher 're-search-forward   ; searcher to use.
                          gap-end-of-statement ; regular expression.
