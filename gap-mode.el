@@ -292,14 +292,7 @@ of communicating with a running gap process."
      (3 "\""))))
 
 (defvar gap-font-lock-keywords
-  `(;; Figure out how to get special font-locking of special comments
-    ;; ("^#[ACFMROPV#]\\(.*\\)" . font-lock-doc-string-face)
-    ;; ("^#I\\(.*\\)" . font-lock-doc-string-face)
-    ;; #I for info comments (from Info command)
-    ;; #G for garbage collection info??
-    ;; #W for workspace info??
-
-    ;; Keywords
+  `(;; Keywords
     (,(concat "\\_<"
               (regexp-opt
                (list "and" "do" "elif" "else" "end" "fi" "for"
@@ -330,9 +323,20 @@ of communicating with a running gap process."
     ("\\_<\\(\\(?:\\w\\|\\s_\\)+\\)\\s *\\(:=\\)"
      (1 font-lock-variable-name-face)
      (2 'bold))
+
+    ;; Docstrings for GAP functions seem to have the following format.
+    ;; I don't know what the different letters mean, so assume any are valid.
+    ("^#\\([A-Z]\\)\\s +\\(.*\\)"
+     (1 font-lock-warning-face t)
+     (2 'font-lock-doc-string-face t))
+    ("^##\\s +\\(.*\\)"
+     1 'font-lock-doc-string-face t)
+
     ;; TODO: could use an eval form to scan the buffer for funcion
     ;; declarations and mark them...
-    ))
+    )
+  "Font lock Keywords for GAP.
+For format of ths variable see `font-lock-keywords'.")
 
 (defvar gap-mode-map
   (let ((map (make-sparse-keymap)))
