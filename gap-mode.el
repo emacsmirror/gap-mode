@@ -1087,11 +1087,6 @@ were at that buffer position. "
   (gap-beginning-of-line)
   (skip-chars-forward " \t"))
 
-(defun gap-current-column ()
-  "Returns the number of characters between point and beginning of line."
-  (- (point)
-     (beg-of-line-from-point)))
-
 ;;! Fix member function?!
 (defun memberequal (x y)
   "Like memq, but uses `equal' for comparison.
@@ -1178,12 +1173,11 @@ This is a subr in Emacs 19."
 
 (defun gap-calc-new-stmt (this-stmt this-beg this-end
                           last-stmt last-beg last-end)
-  "Find indentation for new statement in gap"
+  "Find indentation for a new statement in GAP."
   (let ((ind 0)
-        (last-was-decr nil)
         base)
     (goto-char last-beg)
-    (progn (gap-back-to-indentation) (gap-current-column))
+    (gap-back-to-indentation)
 
     ;; Indent based on current and previous statements
     (if (string-match gap-increment-indentation-regexp last-stmt)
@@ -1192,7 +1186,9 @@ This is a subr in Emacs 19."
         (setq ind (- ind gap-indent-step)))
 
     ;; We are at the beginning of the previous line
-    (let ((p (point)))
+    (let ((p (point))
+          (last-was-decr nil)
+          (more-than-one-command-on-last-line nil))
       (goto-char last-beg)
       ;; Increment/decrement for all statements on the previous line
       (while (and (not (eq (point) (save-excursion (gap-back-to-indentation) (point))))
@@ -1206,20 +1202,27 @@ This is a subr in Emacs 19."
               (setq ind (- ind gap-indent-step)
                     last-was-decr t)
             (setq last-was-decr nil)))
-        (setq last-beg (point))))
+        (setq last-beg (point)
+              more-than-one-command-on-last-line t)) ; end while
 
-    ;; If the last statement that we saw (working backwards) was a
-    ;; decrement, then we can ignore it since it was already taken
-    ;; into account:
-    ;; if 4>3 then x:= 3;
-    ;; fi; if 4>3 then
-    ;;     x:= 3;
-    ;; fi;
-    (if last-was-decr
-        (setq ind (+ ind gap-indent-step)))
+      ;; If the last statement that we saw (working backwards) was a
+      ;; decrement, then we can ignore it since it was already taken
+      ;; into account:
+      ;; if 4>3 then x:= 3;
+      ;; fi; if 4>3 then
+      ;;     x:= 3;
+      ;; fi;
+      (if last-was-decr
+          (setq ind (+ ind gap-indent-step)))
+      ;; Handle cases like
+      ;; if 4>3 then return([]); fi;
+      (if (and more-than-one-command-on-last-line
+               (string-match gap-decrement-indentation-regexp last-stmt))
+          (setq ind (- ind gap-indent-step))))
+
     ;; Determine the base from the most recent statement which is the
-    ;; first on the line
-    (setq base (progn (gap-back-to-indentation) (gap-current-column))
+    ;; first on the line (this is where we ended from the while loop)
+    (setq base (progn (gap-back-to-indentation) (current-column))
           ind (+ base ind))
     (if gap-debug-indent
         (gap-debug-inform base ind last-stmt this-stmt))
@@ -1273,7 +1276,7 @@ This is a subr in Emacs 19."
                 (if (null match)
                     (gap-back-to-indentation))
                 (setq ind-special (max (if (null ind-special) 0 ind-special)
-                                       (+ (gap-current-column) offset)))))))
+                                       (+ (current-column) offset)))))))
 
         ;; Now decide on the actual indentation.
         (cond ( (and bracks ind-special)
@@ -1332,7 +1335,7 @@ base indentation of the line starting the bracket grouping"
       (setq base-brack (current-indentation))
       (forward-char 1)
       (skip-chars-forward " \t")
-      (setq ind-brack (gap-current-column))
+      (setq ind-brack (current-column))
       ;; return cons of indentation level due to bracks, and the base
       (cons ind-brack base-brack))))
 
