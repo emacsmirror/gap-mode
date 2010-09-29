@@ -67,24 +67,32 @@
 ;;!   the same as the GAP C-l previous input command. Moved recenter
 ;;!   to C-c C-l to make room.
 (require 'comint)
+
 (defvar gap-executable "/usr/local/algebra/bin/gap"
   "* The GAP executable.")
+
 (defvar gap-start-options (list "-b"
                                 ;;"-l" "/usr/local/algebra/gap3.2/lib/"
                                 "-m" "2m")
-  "* The list of initial GAP options.")
-(defvar gap-prompt-regexp "\\(.*\\(gap\\|brk\\)>\\|^>\\) *"
+  "* The list of initial GAP options.
+You may need to specify -f to force line editing.")
+
+(defvar gap-prompt-regexp "\\(.*\\(gap\\|brk[_0-9]*\\)>\\|^>\\) *"
   "* Regexp used by Newline command in GAP mode to match prompt.")
+
 (defvar gap-directory nil
   "* If this is non-nil, change to this directory before running GAP. Otherwise
 will just use the default directory of the new *GAP* buffer.")
+
 (defvar gap-process-beep nil
   "* Only beep when GAP asks if this is non-nil.")
+
 (defvar gap-complete-double-cols t
   "* Controls final formatting of the GAP completions buffer. If t and
 buffer is currently shown with more than 80 columns and not enough lines,
 then make the list double columned. If not nil or t, then always make the
 completions list double columnes.")
+
 (defvar gap-process-map nil)
 (if gap-process-map nil
   (setq gap-process-map (copy-keymap comint-mode-map))
@@ -94,6 +102,7 @@ completions list double columnes.")
   (define-key gap-process-map "\C-l" 'comint-previous-similar-input)
   (define-key gap-process-map "\C-c\C-l" 'recenter)
   )
+
 (defvar gap-send-state nil
   "Variable used by filter to trap echos and completion in GAP output")
 (defvar gap-syntax-table nil
@@ -111,11 +120,13 @@ completions list double columnes.")
 (defvar gap-pending-input nil
   "Holds input to feed slowly to GAP when starting with buffer as input.")
 (defvar gap-pending-pointer nil)
+
 (defun gap-running-p nil
   (and gap-process-buffer
        (get-buffer-process gap-process-buffer)
        (eq (process-status (get-buffer-process gap-process-buffer))
            'run)))
+
 (defun gap (&optional send-buffer)
   "* Start up a GAP session in a comint-mode buffer.  With prefix arg, send
 the contents of the current buffer to the GAP session as initial standard
@@ -166,11 +177,13 @@ the ? by C-q to insert a ? in the buffer instead of callig help.
   (set-syntax-table gap-syntax-table)
   (use-local-map gap-process-map)
   (setq gap-send-state 'normal))
+
 (defun gap-send ()
   "Send input to GAP."
   (interactive "*")
   (setq gap-send-state 'echo)
   (comint-send-input))
+
 (defun gap-startfile-filter (proc string)
   "This function is the output filter for the GAP process while there is
 still initial standard input to pipe into the process.  To avoid problems
@@ -201,9 +214,10 @@ when it thinks GAP is waiting for it (using gap-prompt-regexp)."
                                                   gap-pending-pointer))
               (setq gap-pending-input nil)))))
     (set-buffer cbuf)))
+
 (defun gap-output-filter (proc string)
   "This function handles the output from a GAP process most of the time.
-It depends on the variable gap-send-state to determine which of three
+It depends on the variable `gap-send-state' to determine which of three
 possible output states GAP is in: 'normal for output that should be shown,
 'echo for the GAP echoing of the last command  (suppressed), and 'completing
 when GAP will be trying to complete a symbol before point."
@@ -218,15 +232,15 @@ when GAP will be trying to complete a symbol before point."
       (set-buffer (process-buffer proc))
       (let ((x (string-match "\n" string)))
         (if x
-     (progn
-       (setq gap-send-state 'normal)
+            (progn
+              (setq gap-send-state 'normal)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; NOTE: this section is only needed for NTEmacs
 ;;;       (insert (string-strip-chars string                        ;;GEZ: NTEmacs: get back 1st line of output
 ;;;                                          "\C-g\C-h\C-m"))             ;;GEZ: NTEmacs: get back 1st line of output
 ;;; NOTE: end NTEmacs specific code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-       (insert (string-strip-chars (substring string (+ x 1))    ;;GEZ: original
+              (insert (string-strip-chars (substring string (+ x 1))    ;;GEZ: original
                                           "\C-g\C-h\C-m"))              ;;GEZ: original
               (set-marker (process-mark proc) (point))))))
      ((eq gap-send-state 'completing)
@@ -239,6 +253,7 @@ when GAP will be trying to complete a symbol before point."
               (setq gap-send-state 'normal))
           (insert (string-strip-chars string " \C-h\C-g\C-m"))))))
     (set-buffer cbuf)))
+
 (defun gap-help-filter (proc string)
   "This output filter pipes the output of a help command into a *Help* buffer.
 It must handle the -- <space> page, <n> next line, <b> back, <p> back line, <q> quit -- prompts,    ;; GEZ: GAP 4.4.x
@@ -313,6 +328,7 @@ a *Completions* buffer."
               (insert-rectangle rect)))
           (set-process-filter proc 'gap-output-filter)))
     (set-buffer cbuf)))
+
 (defun gap-complete (&optional full)
   "Complete the partial identifier preceeding point. With arg, send two
 TABs to GAP to get a full list of the completions."
@@ -328,7 +344,6 @@ TABs to GAP to get a full list of the completions."
         (progn
           ;;  delete partial identifier from input line
           (delete-backward-char (length gap-completion-ident))
-
           ;;  ask for completion and clear input line
           (setq gap-send-state 'completing)
           (process-send-string process (concat gap-completion-ident
@@ -352,6 +367,7 @@ TABs to GAP to get a full list of the completions."
         (setq beg (point))
         (re-search-forward "\\>" nil t)
         (buffer-substring beg (point))))))
+
 (defun gap-help (topic arg)
   "Display GAP help about TOPIC in the *Help* buffer."
   (interactive
@@ -393,6 +409,7 @@ containing initial standard input to process."
         (t
          (switch-to-buffer buffname)
          (get-buffer buffname))))
+
 (defun string-strip-chars (string strip)
   "Take STRING and remove characters in STRIP"
   (while (> (length strip) 0)
