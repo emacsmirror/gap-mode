@@ -404,7 +404,7 @@ For format of ths variable see `font-lock-keywords'.")
         "-"
         ["Help on symbol" gap-help :active (gap-running-p)
          :help "Use inferior GAP to get help for symbol at point (if running)"]
-        ["Complete symbol" gap-complete :active (gap-running-p)
+        ["Complete symbol" gap-completion :active (gap-running-p)
          :help "Complete (qualified) symbol before point"]
         ))
     map))
