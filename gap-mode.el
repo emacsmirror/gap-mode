@@ -1468,14 +1468,3 @@ statement, making sure to skip over comments and strings."
 ;;}}}
 
 (provide 'gap-mode)
-
-;;! Emacs Variables:
-;; Local Variables:
-;; mode:Emacs-Lisp
-;; mode:outline-minor
-;; Install-Name: "/usr/local/emacs-18.59/site-lisp/mjs/gap-mode.el"
-;; Install-Copy: "/home/ftp/pub/gnu/elisp/gap-mode.el"
-;; Install-Byte-Compile: t
-;; outline-regexp:"^\\(;;!\\|(defun\\|(defmacro\\|(defvar\\|(setq\\)"
-;; eval: (hide-body)
-;; End:

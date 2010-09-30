@@ -432,14 +432,3 @@ is visible, try to keep the end on screen."
       (goto-char (process-mark proc))
       (insert-before-markers str))
     (set-buffer obuf)))
-
-;; Local Variables:
-;; mode:Emacs-Lisp
-;; mode:outline-minor
-;; Install-Name: "/usr/local/emacs-18.59/site-lisp/mjs/gap-process.el"
-;; Install-Copy: "/usr/home/ftp/pub/gnu/elisp/gap-process.el"
-;; Install-Byte-Compile: t
-;; outline-regexp:"^\\(;;!\\|(def\\)"
-;; eval: (hide-body)
-;; End:
-
