@@ -166,6 +166,14 @@ indentation of comment lines."
   :type 'boolean
   :safe t)
 
+(defcustom gap-electric-semicolon t
+  "If non-nil a semicolon will create a newline as well.
+At the beginning of a line, will add semicolon to the end of the
+previous line so that two semicolons in a row does the right thing."
+  :group 'gap
+  :type 'boolean
+  :safe t)
+
 ;; TODO: this probably shouldn't be a defcustom, but I don't know enough about `gin-mode'
 ;; I think if it's not used anymore, then I'll just rip it out.
 (defcustom gin-retain-indent-re "[ \t]*#+[ \t]*\\|[ \t]+"
@@ -341,6 +349,7 @@ For format of ths variable see `font-lock-keywords'.")
 (defvar gap-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Indenting, formatting
+    (define-key map ";"       'gap-electric-semicolon)
     (define-key map [return]  'gap-newline-command)
     (define-key map "\M-q"    'gap-format-region)
     (define-key map "\M-\C-q" 'gap-format-buffer)
@@ -530,6 +539,24 @@ The behavior is determined by the variables
   (when gap-post-return-indent
     (gap-indent-line)
     (back-to-indentation)))
+
+(defun gap-electric-semicolon (arg)
+  "Insert a semicolon and run `gap-indent-line'.
+With numeric ARG, just insert that many semicolons.  With
+ \\[universal-argument], just insert a single colon."
+  (interactive "*P")
+  (cond ((or arg (not gap-electric-semicolon))
+         (self-insert-command (if (not (integerp arg)) 1 arg)))
+        ((and gap-electric-semicolon
+              (<= (current-column)
+                 (save-excursion (back-to-indentation) (current-column))))
+         (save-excursion
+           (forward-line -1)
+           (end-of-line)
+           (self-insert-command 1)))
+        (t
+         (self-insert-command 1)
+         (gap-newline-command))))
 
 (defun gap-indent-line ()
   "Indent current line intelligently according to GAP semantics.
