@@ -170,6 +170,7 @@ the ? by C-q to insert a ? in the buffer instead of callig help.
   (comint-mode)
   (make-local-variable 'comint-prompt-regexp)
   (setq comint-prompt-regexp gap-prompt-regexp)
+  (set (make-local-variable 'comint-use-prompt-regexp) t)
   (make-local-variable 'comint-eol-on-send)
   (setq comint-eol-on-send t)
   (setq major-mode 'gap-process-mode)
@@ -343,7 +344,7 @@ TABs to GAP to get a full list of the completions."
     (if (not full)
         (progn
           ;;  delete partial identifier from input line
-          (delete-backward-char (length gap-completion-ident))
+          (delete-char (- (length gap-completion-ident)))
           ;;  ask for completion and clear input line
           (setq gap-send-state 'completing)
           (process-send-string process (concat gap-completion-ident
@@ -432,3 +433,5 @@ is visible, try to keep the end on screen."
       (goto-char (process-mark proc))
       (insert-before-markers str))
     (set-buffer obuf)))
+
+
