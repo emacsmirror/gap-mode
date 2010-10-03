@@ -891,7 +891,7 @@ or end of a group that the point is on, otherwise just insert a % symbol."
 
 ;; This seems really innefficient and inelegent, but it's fast enough
 ;; OMM, so I'm going to stick with it for now
-(defun gap-beginning-of-defun (&optional arg)
+(defun gap-beginning-of-defun (arg)
   "Function to use for `beginning-of-defun-function'."
   (interactive "^p")
   ;; move inside the function definition if at the beginning of a line
