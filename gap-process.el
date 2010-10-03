@@ -68,30 +68,56 @@
 ;;!   to C-c C-l to make room.
 (require 'comint)
 
-(defvar gap-executable "/usr/local/algebra/bin/gap"
-  "* The GAP executable.")
+;;{{{ defcustoms
 
-(defvar gap-start-options (list "-b"
-                                ;;"-l" "/usr/local/algebra/gap3.2/lib/"
-                                "-m" "2m")
-  "* The list of initial GAP options.
-You may need to specify -f to force line editing.")
+(defcustom gap-executable "/usr/local/algebra/bin/gap"
+  "Path to the GAP executable"
+  :group 'gap
+  :type 'file)
 
-(defvar gap-prompt-regexp "\\(.*\\(gap\\|brk[_0-9]*\\)>\\|^>\\) *"
-  "* Regexp used by Newline command in GAP mode to match prompt.")
+(defcustom gap-start-options (list "-f" "-b" "-m" "2m")
+  "The list of initial GAP options.
+You may need to specify -f to force line editing."
+  :group 'gap
+  :type '(repeat string))
 
-(defvar gap-directory nil
-  "* If this is non-nil, change to this directory before running GAP. Otherwise
-will just use the default directory of the new *GAP* buffer.")
+(defcustom gap-prompt-regexp "\\(.*\\(gap\\|brk[_0-9]*\\)>\\|^>\\) *"
+  "Regexp used by Newline command in GAP mode to match prompt."
+  :group 'gap
+  :type 'regexp)
 
-(defvar gap-process-beep nil
-  "* Only beep when GAP asks if this is non-nil.")
+(defcustom gap-directory nil
+  "If non-nil, change to this directory before running GAP.
+Otherwise will just use the default directory of the new *GAP*
+buffer."
+  :group 'gap
+  :type '(choice (const nil)
+                 file))
 
-(defvar gap-complete-double-cols t
-  "* Controls final formatting of the GAP completions buffer. If t and
-buffer is currently shown with more than 80 columns and not enough lines,
-then make the list double columned. If not nil or t, then always make the
-completions list double columnes.")
+(defcustom gap-process-beep nil
+  "If non-nil beep when GAP asks."
+  :group 'gap
+  :type 'boolean
+  :safe t)
+
+(defcustom gap-complete-double-cols t
+  "Controls final formatting of the GAP completions buffer.
+If t and buffer is currently shown with more than 80 columns and
+not enough lines, then make the list double columned. If not nil
+or t, then always make the completions list double columnes."
+  :group 'gap
+  :type '(choice (const :tag "Never use double columns" nil)
+                 (const :tag "Sometimes use double columns" t)
+                 (other :tag "Always use double columns" 'always))
+  :safe t)
+
+(defcustom gap-auto-start-gap nil
+  "If non-nil, automatially start an interpreter when required.
+Otherwise signals an error."
+  :group 'gap
+  :type 'boolean)
+
+;;}}}
 
 (defvar gap-process-map nil)
 (if gap-process-map nil
@@ -105,6 +131,8 @@ completions list double columnes.")
 
 (defvar gap-send-state nil
   "Variable used by filter to trap echos and completion in GAP output")
+
+;; TODO: use the syntax-gable from gap-mode.el
 (defvar gap-syntax-table nil
   "Syntax table used while in gap mode.")
 (if gap-syntax-table ()
@@ -113,25 +141,37 @@ completions list double columnes.")
   (modify-syntax-entry ?# "<" gap-syntax-table) ;; # starts comment
   (modify-syntax-entry ?\n ">" gap-syntax-table) ;; newline ends comment
   )
+
 (defvar gap-completion-ident nil
   "Stores identifier that GAP is completing")
+
 (defvar gap-process-buffer nil
   "Points to a running gap session.")
+
 (defvar gap-pending-input nil
   "Holds input to feed slowly to GAP when starting with buffer as input.")
+
 (defvar gap-pending-pointer nil)
 
-(defun gap-running-p nil
+(defun gap-running-p ()
+  "Return non-nil if GAP interpreter is running."
   (and gap-process-buffer
        (get-buffer-process gap-process-buffer)
        (eq (process-status (get-buffer-process gap-process-buffer))
            'run)))
 
+(defun gap-okay-to-run ()
+  "Return non-nil if it's okay to .
+See `gap-auto-start-gap'."
+  (or gap-auto-start-gap
+      (gap-running-p)))
+
 (defun gap (&optional send-buffer)
-  "* Start up a GAP session in a comint-mode buffer.  With prefix arg, send
-the contents of the current buffer to the GAP session as initial standard
-input. Switch to existing *gap* buffer if process is already running, also
-sending current buffer if prefix arg."
+  "Start up a GAP session in a comint-mode buffer.
+With prefix arg, send the contents of the current buffer to the
+GAP session as initial standard input. Switch to existing *gap*
+buffer if process is already running, also sending current buffer
+if prefix arg."
   (interactive "P")
   (if (not (gap-running-p))
       (let (proc)
@@ -358,6 +398,20 @@ TABs to GAP to get a full list of the completions."
             (process-send-string process (concat gap-completion-ident
                                                  "\t\t\C-x")))))))
 
+(defun ensure-gap-running (noerr)
+  "If GAP process is not running, throw an error or start it.
+This is meant to be called in a function before doing something
+which requires the GAP interpreter to be running such as
+`gap-complete'.  If `gap-auto-start-gap' is non-nil then start a
+new process, otherwise throw an error.  "
+  (or (gap-running-p)
+      (when gap-auto-start-gap (gap))
+      (unless noerr (error "GAP not running"))
+      nil)
+  (when eob-p
+    (push-mark)
+    (goto-char (point-max))))
+
 (defun gap-ident-around-point ()
   "Return the identifier around the point as a string."
   (save-excursion
@@ -434,4 +488,4 @@ is visible, try to keep the end on screen."
       (insert-before-markers str))
     (set-buffer obuf)))
 
-
+(provide 'gap-process)
