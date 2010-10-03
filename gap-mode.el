@@ -979,13 +979,11 @@ See `gap-eval-region'."
   (interactive)
   (save-excursion
     (let* ((beg (progn (gap-search-back-end-stmt nil 1 'beg)
-                       (sit-for 1)
                        (gap-search-back-end-stmt nil 1 'end)
                        (gap-skip-forward-to-token nil 1)
-                       (sit-for 1)
                        (point)))
            (end (progn (gap-search-forward-end-stmt nil 1 'end)
-                       (sit-for 1)(point))))
+                       (point))))
       (gap-eval-region beg end))))
 
 ;;}}}
