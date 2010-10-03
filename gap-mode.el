@@ -109,7 +109,8 @@ indentation level. This is good for formatting lists and matrices."
   "If indentation due to bracketing will indent more than this value,
 use this value instead.  nil is equivalent to infinity."
   :group 'gap
-  :type 'integer
+  :type '(choice (const :tag "No limit" nil)
+                 (integer :tag "Bracket indentation limit"))
   :safe t)
 
 (defcustom gap-indent-step 4
@@ -168,7 +169,7 @@ indentation of comment lines."
 
 (defcustom gap-electric-semicolon t
   "If non-nil a semicolon will create a newline as well.
-At the beginning of a line, will add semicolon to the end of the
+At the beginning of a line, instead add semicolon to the end of the
 previous line so that two semicolons in a row does the right thing."
   :group 'gap
   :type 'boolean
@@ -197,7 +198,7 @@ indent region command is run."
 indentation of comments---all GAP code indentation depends on the
 variable gap-indent-step."
   :group 'gap
-  :type '(sexp)
+  :type '(repeat integer)
   :safe t)
 
 (defcustom gap-mode-hook nil
@@ -264,6 +265,7 @@ of communicating with a running GAP process."
   :safe t)
 
 ;;}}}
+;; TODO: Add function to create documentation block
 ;;{{{ gap-mode, syntax and font-lock
 
 (defvar gap-syntax-table
@@ -340,7 +342,7 @@ of communicating with a running GAP process."
     ("^##\\s +\\(.*\\)"
      1 'font-lock-doc-string-face t)
 
-    ;; TODO: could use an eval form to scan the buffer for funcion
+    ;; TODO: could use an eval form to scan the buffer for function
     ;; declarations and mark them...
     )
   "Font lock Keywords for GAP.
@@ -376,7 +378,7 @@ For format of ths variable see `font-lock-keywords'.")
          :help "Uncomment region"]
         "-"
         ["Insert Local Variables" gap-insert-local-variables
-         :help "Insert statement local variables"] ;TODO:
+         :help "Insert statement local variables"]
         ["Add Local Variable" gap-add-local-variable
          :help "Insert statement local variables"]
         ["Insert Debug Statement" gap-insert-debug-print
@@ -418,7 +420,7 @@ For format of ths variable see `font-lock-keywords'.")
         ))
     map))
 
-;; TODO: make beginning/end-of-defun commands and block commands
+;; TODO: make beginning/end-of-block commands
 (define-derived-mode gap-mode fundamental-mode "GAP"
   "Major mode for writing GAP programs.  The following keys are defined:
 
@@ -1453,8 +1455,9 @@ found, simply return nil."
     p))
 
 (defun gap-search-back-end-stmt (limit ret goto)
-  "This function searches backward from point for the end of a GAP
-statement, making sure to skip over comments and strings."
+  "Search backward from point for the end of a GAP statement.
+If GOTO is the symbol end, then goto the end of the statement,
+else to the beginning of the end."
   (if (not (gap-searcher 're-search-backward ; searcher to use.
                          gap-end-of-statement ; regular expression.
                          limit      ; bound for search.
