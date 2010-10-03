@@ -398,7 +398,7 @@ TABs to GAP to get a full list of the completions."
             (process-send-string process (concat gap-completion-ident
                                                  "\t\t\C-x")))))))
 
-(defun ensure-gap-running (noerr)
+(defun ensure-gap-running (&optional noerr)
   "If GAP process is not running, throw an error or start it.
 This is meant to be called in a function before doing something
 which requires the GAP interpreter to be running such as
@@ -407,10 +407,7 @@ new process, otherwise throw an error.  "
   (or (gap-running-p)
       (when gap-auto-start-gap (gap))
       (unless noerr (error "GAP not running"))
-      nil)
-  (when eob-p
-    (push-mark)
-    (goto-char (point-max))))
+      nil))
 
 (defun gap-ident-around-point ()
   "Return the identifier around the point as a string."
