@@ -85,8 +85,7 @@
 ;;! * First release version.
 
 ;;! Autoload functions from gap-process.
-(autoload 'gap-help "gap-process" nil t)
-(autoload 'gap-complete "gap-process" nil t)
+(require 'gap-process)
 
 ;;{{{ defcustoms/defvars
 
@@ -365,6 +364,11 @@ For format of ths variable see `font-lock-keywords'.")
     ;; Interpreter
     (define-key map [M-tab]   'gap-completion) ; Should probably use
     (define-key map "\M-?"    'gap-help)
+    ;; Evaluating things in the interpreter
+    (define-key map "\C-ce"    'gap-eval-defun)
+    (define-key map "\C-c\C-e" 'gap-eval-last-statement)
+    (define-key map "\C-c\C-r" 'gap-eval-region)
+    (define-key map "\C-c\C-f" 'gap-eval-buffer)
     ;; Menu
     (easy-menu-define gap-menu map "GAP Mode menu"
       `("GAP" :help "GAP-specific Features"
@@ -397,25 +401,20 @@ For format of ths variable see `font-lock-keywords'.")
         ["Jump to matching beginning/end of grouping" gap-match-group
          :help "Mark innermost definition around point"]
         "-"
-        ;; TODO: get this list
-        ["Start interpreter" gap
+        ["Start GAP interpreter or switch to it" gap
          :help "Run inferior GAP in separate buffer"]
-        ;; TODO: I need to add these
-        ;; ["Eval buffer" python-send-buffer
-        ;;  :help "Evaluate buffer en bloc in inferior Python session"]
-        ;; ["Eval region" python-send-region :active mark-active
-        ;;  :help "Evaluate region en bloc in inferior Python session"]
-        ;; ["Eval def/class" python-send-defun
-        ;;  :help "Evaluate current definition in inferior Python session"]
-        ;; ["Switch to interpreter" python-switch-to-python
-        ;;  :help "Switch to inferior Python buffer"]
-        ;; ["Set default process" python-set-proc
-        ;;  :help "Make buffer's inferior process the default"
-        ;;  :active (buffer-live-p python-buffer)]
+        ["Eval buffer" gap-eval-buffer :active (gap-okay-to-run)
+         :help "Evaluate entire buffer in inferior GAP session"]
+        ["Eval region" gap-eval-region :active (and mark-active (gap-okay-to-run))
+         :help "Evaluate region in inferior GAP session"]
+        ["Eval function" gap-eval-defun :active (gap-okay-to-run)
+         :help "Evaluate current function definition in inferior GAP session"]
+        ["Eval last statement" gap-eval-last-statement :active (gap-okay-to-run)
+         :help "Evaluate statement before point in inferior GAP session"]
         "-"
-        ["Help on symbol" gap-help :active (gap-running-p)
+        ["Help on symbol" gap-help :active (gap-okay-to-run)
          :help "Use inferior GAP to get help for symbol at point (if running)"]
-        ["Complete symbol" gap-completion :active (gap-running-p)
+        ["Complete symbol" gap-completion :active (gap-okay-to-run)
          :help "Complete (qualified) symbol before point"]
         ))
     map))
@@ -943,6 +942,51 @@ or end of a group that the point is on, otherwise just insert a % symbol."
     (goto-char (point-max)))
   (when (looking-at "\\s *$")
     (forward-line 1)))
+
+;; TODO: Need to make this scroll and keep the input
+;; TODO: may need to add a final return
+(defun gap-eval-region (begin end)
+  "Send region to GAP interpreter.
+If GAP is not running it will signal an error or start it
+depending on the value of `gap-auto-start-gap'."
+  (interactive "r")
+  (ensure-gap-running nil)
+  (let ((process (get-buffer-process gap-process-buffer)))
+    (setq gap-send-state 'echo)
+    ;; (setq gap-send-state 'normal)
+    (set-process-filter process 'gap-output-filter)
+    (process-send-string process
+                         (buffer-substring-no-properties begin end))))
+
+(defun gap-eval-buffer ()
+  "Send entire buffer to GAP interpreter.
+See `gap-eval-region'."
+  (interactive)
+  (gap-eval-region (point-min) (point-max)))
+
+(defun gap-eval-defun ()
+  "Send current function definition to GAP interpreter.
+See `gap-eval-region'."
+  (interactive)
+  (save-excursion
+    (let* ((beg (progn (gap-beginning-of-defun 1) (point)))
+           (end (progn (gap-end-of-defun)         (point))))
+      (gap-eval-region beg end))))
+
+(defun gap-eval-last-statement ()
+  "Send previous statement to the GAP interpreter.
+See `gap-eval-region'."
+  (interactive)
+  (save-excursion
+    (let* ((beg (progn (gap-search-back-end-stmt nil 1 'beg)
+                       (sit-for 1)
+                       (gap-search-back-end-stmt nil 1 'end)
+                       (gap-skip-forward-to-token nil 1)
+                       (sit-for 1)
+                       (point)))
+           (end (progn (gap-search-forward-end-stmt nil 1 'end)
+                       (sit-for 1)(point))))
+      (gap-eval-region beg end))))
 
 ;;}}}
 ;;{{{ indentaton functions and variables
