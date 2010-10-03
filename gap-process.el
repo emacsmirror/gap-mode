@@ -132,16 +132,6 @@ Otherwise signals an error."
 (defvar gap-send-state nil
   "Variable used by filter to trap echos and completion in GAP output")
 
-;; TODO: use the syntax-gable from gap-mode.el
-(defvar gap-syntax-table nil
-  "Syntax table used while in gap mode.")
-(if gap-syntax-table ()
-  (setq gap-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?. "w" gap-syntax-table) ;; . is part of identifiers
-  (modify-syntax-entry ?# "<" gap-syntax-table) ;; # starts comment
-  (modify-syntax-entry ?\n ">" gap-syntax-table) ;; newline ends comment
-  )
-
 (defvar gap-completion-ident nil
   "Stores identifier that GAP is completing")
 
@@ -215,7 +205,9 @@ the ? by C-q to insert a ? in the buffer instead of callig help.
   (setq comint-eol-on-send t)
   (setq major-mode 'gap-process-mode)
   (setq mode-name "Gap")
+  (require 'gap-mode) ;; for gap-syntax-table and gap-font-lock-keywords
   (set-syntax-table gap-syntax-table)
+  (set (make-local-variable 'font-lock-defaults) '(gap-font-lock-keywords))
   (use-local-map gap-process-map)
   (setq gap-send-state 'normal))
 

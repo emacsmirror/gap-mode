@@ -340,9 +340,17 @@ of communicating with a running GAP process."
      (2 'font-lock-doc-string-face t))
     ("^##\\s +\\(.*\\)"
      1 'font-lock-doc-string-face t)
-
     ;; TODO: could use an eval form to scan the buffer for function
     ;; declarations and mark them...
+
+    ;; These are for interactive gap use.  Technically should probably
+    ;; only be for gap-process-mode, but they shouldn't show up in a
+    ;; gap file and it's easier this way.
+    ("^Variable: '.*' must have a value" . font-lock-warning-face)
+    ("^Syntax error:.*"                  . font-lock-warning-face)
+    ("^\\s *\\^$"                        . font-lock-warning-face)
+    ;; TODO: This was a pretty arbitrary choice of face...
+    (,gap-prompt-regexp                  . font-lock-preprocessor-face)
     )
   "Font lock Keywords for GAP.
 For format of ths variable see `font-lock-keywords'.")
