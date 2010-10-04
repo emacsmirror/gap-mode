@@ -401,16 +401,6 @@ new process, otherwise throw an error.  "
       (unless noerr (error "GAP not running"))
       nil))
 
-(defun gap-ident-around-point ()
-  "Return the identifier around the point as a string."
-  (save-excursion
-    (let (beg)
-      (if (not (looking-at "\\(\\>\\|\\w\\)"))
-          ""
-        (re-search-backward "\\<" nil t)
-        (setq beg (point))
-        (re-search-forward "\\>" nil t)
-        (buffer-substring beg (point))))))
 
 (defun gap-help (topic arg)
   "Display GAP help about TOPIC in the *Help* buffer."
