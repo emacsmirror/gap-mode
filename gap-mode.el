@@ -902,7 +902,8 @@ or end of a group that the point is on, otherwise just insert a % symbol."
   "Function to use for `beginning-of-defun-function'."
   (interactive "^p")
   ;; move inside the function definition if at the beginning of a line
-  (end-of-line)
+  (when (> (current-column) 0)
+    (end-of-line))
   ;; If we are not inside a defun, then skip to the inside of the previous one
   (and (not (save-excursion
               (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t)))
