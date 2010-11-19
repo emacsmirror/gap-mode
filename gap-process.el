@@ -67,7 +67,8 @@
 ;;!   the same as the GAP C-l previous input command. Moved recenter
 ;;!   to C-c C-l to make room.
 (require 'comint)
-
+;; TODO: problem with interrupting while printing output.
+;; TODO: `comint-previous-similar-input' doesn't exist??
 ;;{{{ defcustoms
 
 (defcustom gap-executable "/usr/local/algebra/bin/gap"
@@ -287,6 +288,8 @@ when GAP will be trying to complete a symbol before point."
           (insert (string-strip-chars string " \C-h\C-g\C-m"))))))
     (set-buffer cbuf)))
 
+;; TODO: problem with Combinations
+;; TODO: make links to click on numbers when we have to choose
 (defun gap-help-filter (proc string)
   "This output filter pipes the output of a help command into a *Help* buffer.
 It must handle the -- <space> page, <n> next line, <b> back, <p> back line, <q> quit -- prompts,    ;; GEZ: GAP 4.4.x

@@ -263,8 +263,17 @@ of communicating with a running GAP process."
   :type 'boolean
   :safe t)
 
+;;; Interaction with other modes
+
+;; Support `imenu' and therefore `which-function-mode'
+(defvar gap-imenu-generic-expression
+  '((nil "\\_<\\(\\(?:\\w\\|\\s_\\)+\\)\\s *:=\\s *\\(function\\)" 1)))
+
 ;;}}}
 ;; TODO: Add function to create documentation block
+;; TODO: Fix indentation in test.gap
+;; TODO: mark-defun when cursor is at beginning of "end;" fails if
+;;       end; is at the beginning of a line (usually the case)
 ;;{{{ gap-mode, syntax and font-lock
 
 (defvar gap-syntax-table
@@ -503,6 +512,10 @@ end;"
        'gap-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function)
        'gap-end-of-defun)
+  (set (make-local-variable 'imenu-generic-expression)
+       gap-imenu-generic-expression)
+  (when (boundp 'which-func-modes)
+    (add-to-list 'which-func-modes 'gap-mode))
   (set (make-local-variable 'comment-start) "#")
   (setq indent-tabs-mode nil)
   (set (make-local-variable 'tab-stop-list) gap-tab-stop-list))
