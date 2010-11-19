@@ -386,6 +386,7 @@ For format of ths variable see `font-lock-keywords'.")
     (define-key map "\C-c\C-e" 'gap-eval-last-statement)
     (define-key map "\C-c\C-r" 'gap-eval-region)
     (define-key map "\C-c\C-f" 'gap-eval-buffer)
+    (define-key map "\C-c\C-k" 'gap-eval-file)
     ;; Menu
     (easy-menu-define gap-menu map "GAP Mode menu"
       `("GAP" :help "GAP-specific Features"
@@ -965,14 +966,41 @@ depending on the value of `gap-auto-start-gap'."
     (setq gap-send-state 'echo)
     ;; (setq gap-send-state 'normal)
     (set-process-filter process 'gap-output-filter)
-    (process-send-string process
-                         (buffer-substring-no-properties begin end))))
+    (comint-send-region process begin end)))
+
+(defun gap-eval-string (buf-str)
+  "Send region to GAP interpreter.
+If GAP is not running it will signal an error or start it
+depending on the value of `gap-auto-start-gap'."
+  (ensure-gap-running nil)
+  (let ((process (get-buffer-process gap-process-buffer)))
+    ;; (setq gap-send-state 'echo) ;; This only hides the first line...
+    (setq gap-send-state 'normal)
+    (set-process-filter process 'gap-output-filter)
+    (comint-send-string process
+                         (if (string-match "\n\\'" buf-str)
+                             buf-str
+                           (concat buf-str "\n")))))
 
 (defun gap-eval-buffer ()
   "Send entire buffer to GAP interpreter.
 See `gap-eval-region'."
   (interactive)
   (gap-eval-region (point-min) (point-max)))
+
+(defun gap-eval-file (file)
+  "Send a Read statement to GAP interpreter to read a file.
+Interactively, it prompts to save current buffer if it belongs to a file.
+
+ Compare with gap-eval-buffer which "
+  (interactive
+   ;; If interactive, ask to save buffer (not required), and then send file
+   (progn (and (buffer-modified-p (current-buffer))
+               (y-or-n-p "Save current buffer?")
+               (save-buffer))
+          (list (buffer-file-name))))
+
+  (gap-eval-string (concat "Read(\"" file "\");")))
 
 (defun gap-eval-defun ()
   "Send current function definition to GAP interpreter.
