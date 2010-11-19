@@ -440,20 +440,7 @@ For format of ths variable see `font-lock-keywords'.")
 (define-derived-mode gap-mode fundamental-mode "GAP"
   "Major mode for writing GAP programs.  The following keys are defined:
 
- \\[gap-indent-command]      to intelligently indent current line.
- \\[gap-newline-command]      newline with indentation of current and new line.
- \\[gap-format-region]    to indent each line of the region.
- \\[gap-format-buffer]  to indent each line of the whole buffer.
- \\[gap-match-group]    to find matching beginning or end of grouping at point.
-          See the documentation for command gap-match-group.
- \\[gap-comment-region]   to comment out region: with arg to uncomment region.
- \\[gap-add-local-variable]   to add identifier to local variables of function.
- \\[gap-insert-local-variables]   to insert a local variables statement for the current function.
-
-If a GAP process is running in buffer *gap*, then also:
-
- \\[gap-completion]  complete identifier at point
- \\[gap-help]  get GAP help on (any) topic
+\\{gap-mode-map}
 
 Variables: (with default given)
 
@@ -967,6 +954,7 @@ or end of a group that the point is on, otherwise just insert a % symbol."
 
 ;; TODO: Need to make this scroll and keep the input
 ;; TODO: may need to add a final return
+;; comint-postoutput-scroll-to-bottom
 (defun gap-eval-region (begin end)
   "Send region to GAP interpreter.
 If GAP is not running it will signal an error or start it
@@ -1066,13 +1054,13 @@ If TERMINATE is t, then don't check any later ones if matched.")
   "Return the identifier around the point as a string."
   (save-excursion
     (let (beg)
-      (if (not (looking-at "\\(\\>\\|\\w\\)"))
+      (if (not (looking-at "\\(\\_>\\|\\s_\\)"))
           ""
         (and (< (point) (point-max))
              (forward-char 1))
-        (re-search-backward "\\<" nil t)
+        (re-search-backward "\\_<" nil t)
         (setq beg (point))
-        (re-search-forward "\\>" nil t)
+        (re-search-forward "\\_>" nil t)
         (buffer-substring beg (point))))))
 
 (defun gap-point-in-comment-string ()

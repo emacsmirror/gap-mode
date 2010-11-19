@@ -128,6 +128,8 @@ Otherwise signals an error."
   (define-key gap-process-map "?" 'gap-help)
   (define-key gap-process-map "\C-l" 'comint-previous-similar-input)
   (define-key gap-process-map "\C-c\C-l" 'recenter)
+  (define-key gap-process-map "\C-c\C-c" 'comint-interrupt-subjob)
+  (define-key gap-process-map "\C-c\C-z" 'comint-stop-subjob)
   )
 
 (defvar gap-send-state nil
@@ -372,8 +374,8 @@ TABs to GAP to get a full list of the completions."
   (let ((process (get-buffer-process gap-process-buffer)))
     (if (not (gap-running-p))
         (error "No GAP process running in buffer %s" gap-process-buffer))
-    (if (not (looking-at "\\>"))
-        (if (not (re-search-forward "\\>" nil t))
+    (if (not (looking-at "\\_>"))
+        (if (not (re-search-forward "\\_>" nil t))
             (error "Complete what?")))
     (setq gap-completion-ident (gap-ident-around-point))
     (if (not full)
