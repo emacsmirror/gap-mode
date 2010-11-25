@@ -1109,9 +1109,27 @@ If TERMINATE is t, then don't check any later ones if matched.")
 
 (defun gap-strip-line-of-strings (line)
   "Removes GAP strings from LINE."
-  (while (string-match "[^\\\\]\\(\"\"\\|\"[^\"]*[^\\\\]\"\\)" line)
+  ;; When stripping strings we change "aaa\"bbb" into "bbb" thus
+  ;; allowing us to deal with strings with embedded double quotes
+  ;; which otherwise caused problems.
+  ;; TODO: this is ugly, perhaps we can use properties so that
+  ;; font-lock does the hard work for us
+  (while (string-match
+          (eval-when-compile
+            (concat "\\(?:\\\\\\\\\\)*" ; an even number of backslashes
+                    "\\(\"\\)"          ; open quote
+                    "[^\"]*?"           ; non-greedy matching of
+                                        ; non-quote characters so that
+                                        ; backslashes all get matched
+                                        ; in the next section
+                    "\\(?:\\\\\\\\\\)*" ; even number of backslashes
+                    "\\(\\\\\\)?"       ; optional odd backslash
+                    "\""                ; close quote
+                    ))
+          line)
     (setq line (concat (substring line 0 (match-beginning 1))
-                       (substring line (match-end 1)))))
+                       (if (match-beginning 2) "\"")
+                       (substring line (match-end 0)))))
   line)
 
 (defun gap-strip-line-of-brackets (line)
