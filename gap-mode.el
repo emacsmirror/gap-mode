@@ -190,7 +190,6 @@ indent region command is run."
   :type 'boolean
   :safe t)
 
-;; TODO: this could have a better type
 (defcustom gap-tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44
                                  48 52 56 60 64 68 72 74 78)
   "Gap-mode tab-stop-list.  Note this is effectively only used in the
@@ -206,7 +205,7 @@ variable gap-indent-step."
   :type 'hook
   :safe t)
 
-(defcustom gap-local-statement-format '(3 2)
+(defcustom gap-local-statement-format '(2 1)
   "Two element list determining format of local var statement inserted.
 First element is number of spaces after \"local\", the second is number
 of spaces after each comma."
@@ -271,9 +270,12 @@ of communicating with a running GAP process."
 
 ;;}}}
 ;; TODO: Add function to create documentation block
+;; TODO: Add function to pretty print function (though you would lose comments...)
+;; TODO: fix `gap-insert-debug-print' since it doesn't match the signature for info
 ;; TODO: Fix indentation in test.gap
 ;; TODO: mark-defun when cursor is at beginning of "end;" fails if
 ;;       end; is at the beginning of a line (usually the case)
+;; TODO: perhaps use (info "(elisp) SMIE")
 ;;{{{ gap-mode, syntax and font-lock
 
 (defvar gap-syntax-table
