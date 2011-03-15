@@ -171,7 +171,7 @@ if prefix arg."
         (setq gap-pending-input (if send-buffer (buffer-string) nil))
         (setq gap-pending-pointer 0)
         (setq gap-process-buffer
-              (get-start-process gap-executable nil
+              (get-start-process gap-executable "GAP"
                                  (if gap-directory
                                      (expand-file-name gap-directory)
                                    nil)
@@ -436,16 +436,16 @@ Has a optional list ARGS of command line arguments, and file STARTFILE
 containing initial standard input to process."
   (interactive)
   (setq name (or name (file-name-nondirectory progm)))
-  (setq buffname (concat "*" name "*"))
-  (cond ((not (comint-check-proc buffname))
-         (let ((buff (get-buffer-create buffname)))
-           (set-buffer buff)
-           (switch-to-buffer buff)
-           (if dir (cd dir))
-           (apply 'make-comint name progm startfile args)))
-        (t
-         (switch-to-buffer buffname)
-         (get-buffer buffname))))
+  (let ((buffname (concat "*" name "*")))
+    (cond ((not (comint-check-proc buffname))
+           (let ((buff (get-buffer-create buffname)))
+             (set-buffer buff)
+             (switch-to-buffer buff)
+             (if dir (cd dir))
+             (apply 'make-comint name progm startfile args)))
+          (t
+           (switch-to-buffer buffname)
+           (get-buffer buffname)))))
 
 (defun string-strip-chars (string strip)
   "Take STRING and remove characters in STRIP"
