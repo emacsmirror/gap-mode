@@ -1587,7 +1587,13 @@ else to the beginning of the end."
 
 (defun gap-search-forward-end-stmt (limit ret goto)
   "This function searches forward from point for the end of a GAP
-statement, making sure to skip over comments and strings."
+statement, making sure to skip over comments and strings.
+
+If `RET' then move to `LIMIT' if match fails.
+
+If `GOTO' is 'end then goto the end of the matched statement,
+otherwise goto beginning."
+
   (if (not (gap-searcher 're-search-forward   ; searcher to use.
                          gap-end-of-statement ; regular expression.
                          limit      ; bound for search.
