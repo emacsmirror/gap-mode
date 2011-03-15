@@ -204,8 +204,7 @@ the ? by C-q to insert a ? in the buffer instead of callig help.
   (make-local-variable 'comint-prompt-regexp)
   (setq comint-prompt-regexp gap-prompt-regexp)
   (set (make-local-variable 'comint-use-prompt-regexp) t)
-  (make-local-variable 'comint-eol-on-send)
-  (setq comint-eol-on-send t)
+  (set (make-local-variable 'comint-eol-on-send) t)
   (setq major-mode 'gap-process-mode)
   (setq mode-name "Gap")
   (require 'gap-mode) ;; for gap-syntax-table and gap-font-lock-keywords
@@ -436,7 +435,6 @@ Optionally sets the default directory. If already running, just switch.
 Has a optional list ARGS of command line arguments, and file STARTFILE
 containing initial standard input to process."
   (interactive)
-  (require 'comint)
   (setq name (or name (file-name-nondirectory progm)))
   (setq buffname (concat "*" name "*"))
   (cond ((not (comint-check-proc buffname))
