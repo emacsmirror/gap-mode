@@ -174,6 +174,15 @@ previous line so that two semicolons in a row does the right thing."
   :type 'boolean
   :safe t)
 
+(defcustom gap-electric-equals t
+  "If non-nil equals will toggle between ':=' and '='.
+When set pressing equals will change a preceding := to = and vice
+versa.  When pressing equals not preceded by an equals sign or
+with a prefix agument it will simply insert an equals sign."
+  :group 'gap
+  :type 'boolean
+  :safe t)
+
 ;; TODO: this probably shouldn't be a defcustom, but I don't know enough about `gin-mode'
 ;; I think if it's not used anymore, then I'll just rip it out.
 (defcustom gin-retain-indent-re "[ \t]*#+[ \t]*\\|[ \t]+"
@@ -370,6 +379,7 @@ For format of ths variable see `font-lock-keywords'.")
   (let ((map (make-sparse-keymap)))
     ;; Indenting, formatting
     (define-key map ";"       'gap-electric-semicolon)
+    (define-key map "="       'gap-electric-equals)
     (define-key map [return]  'gap-newline-command)
     (define-key map "\M-q"    'gap-format-region)
     (define-key map "\M-\C-q" 'gap-format-buffer)
@@ -555,7 +565,8 @@ The behavior is determined by the variables
 (defun gap-electric-semicolon (arg)
   "Insert a semicolon and run `gap-indent-line'.
 With numeric ARG, just insert that many semicolons.  With
- \\[universal-argument], just insert a single colon."
+ \\[universal-argument], just insert a single colon.
+If `gap-electric-semicolon' is nil act as `self-insert-command'."
   (interactive "*P")
   (cond ((or arg (not gap-electric-semicolon))
          (self-insert-command (if (not (integerp arg)) 1 arg)))
@@ -569,6 +580,29 @@ With numeric ARG, just insert that many semicolons.  With
         (t
          (self-insert-command 1)
          (gap-newline-command))))
+
+(defun gap-electric-equals (arg)
+  "Insert an equals sign or toggle between ':=' and '='.
+With numeric ARG, just insert that many equals signs.  With
+ \\[universal-argument], just insert a single equals.
+If `gap-electric-equals' is nil act as `self-insert-command'."
+  (interactive "*P")
+  (cond ((or arg (not gap-electric-equals))
+         (self-insert-command (if (not (integerp arg)) 1 arg)))
+        ((and gap-electric-equals
+              (>= (- (point) 2) (point-min))
+              (string-equal ":="
+                            (buffer-substring-no-properties (- (point) 2) (point))))
+         (delete-char -2)
+         (insert "="))
+        ((and gap-electric-equals
+              (>= (- (point) 1) (point-min))
+              (string-equal "="
+                            (buffer-substring-no-properties (- (point) 1) (point))))
+         (delete-char -1)
+         (insert ":="))
+        (t
+         (self-insert-command 1))))
 
 (defun gap-indent-line ()
   "Indent current line intelligently according to GAP semantics.
@@ -933,7 +967,7 @@ or end of a group that the point is on, otherwise just insert a % symbol."
       (goto-char p)
       (forward-char 4)
       ))
-  (when (> (- (point) (point-min)) 4)
+  (when (>= (- (point) (point-min)) 4)
     (backward-char 4))
   ;; We are at end of function
   ;; Handle moving forward
