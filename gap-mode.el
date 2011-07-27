@@ -275,7 +275,7 @@ of communicating with a running GAP process."
 ;; TODO: Fix indentation in test.gap
 ;; TODO: mark-defun when cursor is at beginning of "end;" fails if
 ;;       end; is at the beginning of a line (usually the case)
-;; TODO: perhaps use (info "(elisp) SMIE")
+;; TODO: perhaps use (info "(elisp) SMIE") e.g. lisp/progmodes/octave-mod.el
 ;;{{{ gap-mode, syntax and font-lock
 
 (defvar gap-syntax-table
@@ -933,7 +933,8 @@ or end of a group that the point is on, otherwise just insert a % symbol."
       (goto-char p)
       (forward-char 4)
       ))
-  (backward-char 4)
+  (when (> (- (point) (point-min)) 4)
+    (backward-char 4))
   ;; We are at end of function
   ;; Handle moving forward
   (while (and (< arg 0)
