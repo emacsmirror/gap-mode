@@ -326,6 +326,17 @@ the output until it is done."
           (while (re-search-forward
                   "^\\( *\^H\\)\\|\\(\C-m\\)" nil t)              ;;GEZ: get rid of ^H ^H and ^M
             (replace-match ""))
+          ;; turn numbers into buttons so that we can click on them as well
+          (goto-char (point-min))
+          (while (re-search-forward
+                  "^\\[\\([0-9]+\\)\\].*" nil t)
+            (add-text-properties (match-beginning 0) (match-end 0)
+                                 `(button t
+                                   category default-button
+                                   action (lambda (button)
+                                            (gap-help ,(match-string-no-properties 1) nil))
+                                   mouse-action (lambda (button)
+                                                  (gap-help ,(match-string-no-properties 1) nil)))))
           (set-process-filter proc 'gap-output-filter)))
     (set-buffer cbuf)))
 
@@ -405,7 +416,6 @@ new process, otherwise throw an error.  "
       (unless noerr (error "GAP not running"))
       nil))
 
-
 (defun gap-help (topic arg)
   "Display GAP help about TOPIC in the *Help* buffer."
   (interactive
@@ -421,7 +431,9 @@ new process, otherwise throw an error.  "
      (list val current-prefix-arg)))
   (let ((process (get-buffer-process gap-process-buffer)))
     (if (not (gap-running-p))
-        (error "No gap process running in buffer %s" gap-process-buffer))
+        (if arg
+            (gap)
+          (error "No gap process running in buffer %s" gap-process-buffer)))
     (unwind-protect
         (progn
           (with-output-to-temp-buffer "*Help*"
