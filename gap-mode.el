@@ -1128,7 +1128,7 @@ If TERMINATE is t, then don't check any later ones if matched.")
   "Return the identifier around the point as a string."
   (save-excursion
     (let (beg)
-      (if (not (looking-at "\\(\\_>\\|\\s_\\)"))
+      (if (not (looking-at "\\(\\_>\\|\\s_\\|\\sw\\)"))
           ""
         (and (< (point) (point-max))
              (forward-char 1))
