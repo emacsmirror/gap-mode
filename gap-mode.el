@@ -287,8 +287,6 @@ of communicating with a running GAP process."
 ;; TODO: Add function to create documentation block
 ;; TODO: Add function to pretty print function (though you would lose comments...)
 ;; TODO: fix `gap-insert-debug-print' since it doesn't match the signature for info
-;; TODO: mark-defun when cursor is at beginning of "end;" fails if
-;;       end; is at the beginning of a line (usually the case)
 ;; TODO: perhaps use (info "(elisp) SMIE") e.g. lisp/progmodes/octave-mod.el
 ;;{{{ gap-mode, syntax and font-lock
 
@@ -309,7 +307,6 @@ of communicating with a running GAP process."
     (modify-syntax-entry ?=  "." table)
     (modify-syntax-entry ?<  "." table)
     (modify-syntax-entry ?>  "." table)
-    ;; TODO: make sure this comment is correct, or just make . into punctuation
     ;; Symbol (sort of a hack so that x.y is a single symbol for help purposes)
     ;; We will make .. into punctuation later
     (modify-syntax-entry ?.  "_" table)
@@ -958,7 +955,7 @@ or end of a group that the point is on, otherwise just insert a % symbol."
 (defun gap-beginning-of-defun (arg)
   "Function to use for `beginning-of-defun-function'."
   (interactive "^p")
-  ;; move inside the function definition if at the beginning of a line
+  ;; move inside the function definition if not at the beginning of a line
   (when (> (current-column) 0)
     (end-of-line))
   ;; If we are not inside a defun, then skip to the inside of the previous one
@@ -976,9 +973,11 @@ or end of a group that the point is on, otherwise just insert a % symbol."
                   (> (point) p)             ; We have to enclose the point we are at
                   (setq p (point))))
       (goto-char p)
-      (forward-char 4)
-      ))
-  (when (>= (- (point) (point-min)) 4)
+      (forward-char 4)))
+  ;; We should be just after the "end;" statement, but if we started
+  ;; there, then we are where we already want to be
+  (when (and (>= (- (point) (point-min)) 4)
+             (not (looking-at "end;")))
     (backward-char 4))
   ;; We are at end of function
   ;; Handle moving forward
