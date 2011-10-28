@@ -459,26 +459,26 @@ For format of ths variable see `font-lock-keywords'.")
 
 Variables: (with default given)
 
-  gap-indent-step = (default 4)
+  `gap-indent-step' = (default 4)
         the amount of indentation to add at each level of a group
 
-  gap-indent-step-continued =  (default 2)
+  `gap-indent-step-continued' =  (default 2)
         the extra indentation for continued lines that aren't special
         in some way.
 
 See also the documentation for the variables:
-  gap-pre-return-indent
-  gap-post-return-indent
-  gap-indent-comments
-  gap-indent-comments-flushleft
-  gap-auto-indent-comments
-  gap-indent-brackets
-  gap-bracket-threshold
-  gap-tab-stop-list
-  gap-mode-hook
+  `gap-pre-return-indent'
+  `gap-post-return-indent'
+  `gap-indent-comments'
+  `gap-indent-comments-flushleft'
+  `gap-auto-indent-comments'
+  `gap-indent-brackets'
+  `gap-bracket-threshold'
+  `gap-tab-stop-list'
+  `gap-mode-hook'
 
 and documentation for the functions:
-  gap-percent-command
+  `gap-percent-command'
 
 The indentation style is demonstrated by the following example,
 assuming default indentation variables:
@@ -646,7 +646,7 @@ well as those affecting behavior of `gap-indent-line'."
         (back-to-indentation)
         (while (> (indent-to col) col)
           ;; we were already indented too far, so delete some
-          (delete-backward-char 1)))
+          (delete-char -1)))
     (if (and (not gap-indent-comments-flushleft)
              (save-excursion
                (beginning-of-line)
@@ -1169,7 +1169,8 @@ If TERMINATE is t, then don't check any later ones if matched.")
   ;; allowing us to deal with strings with embedded double quotes
   ;; which otherwise caused problems.
   ;; TODO: this is ugly, perhaps we can use properties so that
-  ;; font-lock does the hard work for us
+  ;; font-lock does the hard work for us.  Better yet we could use
+  ;; sexp-parsing, e.g. kill-sexp
   (while (string-match
           (eval-when-compile
             (concat "\\(?:\\\\\\\\\\)*" ; an even number of backslashes
