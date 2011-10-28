@@ -103,7 +103,6 @@ indentation level. This is good for formatting lists and matrices."
   :type 'boolean
   :safe t)
 
-;; TODO: make integer or nil
 (defcustom gap-bracket-threshold 8
   "If indentation due to bracketing will indent more than this value,
 use this value instead.  nil is equivalent to infinity."
@@ -124,7 +123,6 @@ use this value instead.  nil is equivalent to infinity."
   :type 'integer
   :safe t)
 
-;; TODO: make sure this actually works once we restart
 (defcustom gap-indent-comments t
   "Variable controlling how the indent command works on comments.  A comment
 will be indented to the next tab-stop if gap-indent-comments is:
@@ -281,7 +279,6 @@ of communicating with a running GAP process."
 ;; TODO: Add function to create documentation block
 ;; TODO: Add function to pretty print function (though you would lose comments...)
 ;; TODO: fix `gap-insert-debug-print' since it doesn't match the signature for info
-;; TODO: Fix indentation in test.gap
 ;; TODO: mark-defun when cursor is at beginning of "end;" fails if
 ;;       end; is at the beginning of a line (usually the case)
 ;; TODO: perhaps use (info "(elisp) SMIE") e.g. lisp/progmodes/octave-mod.el
@@ -507,7 +504,7 @@ end;"
                                 (font-lock-syntactic-keywords
                                  . gap-font-lock-syntactic-keywords)))
   (set (make-local-variable 'indent-line-function)
-       'gap-indent-line)
+       'gap-indent-command)
   (set (make-local-variable 'beginning-of-defun-function)
        'gap-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function)
@@ -623,7 +620,7 @@ enabled by `gap-debug-indent'."
          (save-excursion (back-to-indentation) (current-column)))
       (back-to-indentation)))
 
-(defun gap-indent-command (col)
+(defun gap-indent-command ()
   "Smart GAP indent command.
 With `prefix-arg' indents this line to column given by argument.
 If line is a comment starting in column 1 then do nothing.
@@ -638,11 +635,13 @@ default so that `indent-for-tab-command' works intelligently.
 Behaviour depends on the gap-mode variables `gap-tab-stop-list',
 `gap-indent-comments', and `gap-indent-comments-flushleft', as
 well as those affecting behavior of `gap-indent-line'."
-  (interactive "P")
-  (if col
-      (progn
+  (interactive)
+  (if current-prefix-arg
+      (let ((col (abs (prefix-numeric-value current-prefix-arg))))
         (back-to-indentation)
-        (indent-to col))
+        (while (> (indent-to col) col)
+          ;; we were already indented too far, so delete some
+          (delete-backward-char 1)))
     (if (and (not gap-indent-comments-flushleft)
              (save-excursion
                (beginning-of-line)
