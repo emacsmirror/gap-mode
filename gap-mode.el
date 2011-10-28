@@ -241,6 +241,14 @@ unconditinally inserted."
   :type 'boolean
   :safe t)
 
+(defcustom gap-local-variable-inserts-statement t
+  "If non-nil then calling `gap-add-local-variable' will
+automatically generate a local variable statement with the
+current variable if there is no existing statement."
+  :group 'gap
+  :type 'boolean
+  :safe t)
+
 (defcustom gap-insert-debug-name "Info"
   "Function name to use when inserting a debugging/print statement."
   :group 'gap
@@ -702,7 +710,7 @@ each comment line if `gap-auto-indent-comments' is non-nil."
   (goto-char (point-min))
   (gap-format-region))
 
-(defun gap-insert-local-variables (&optional arg)
+(defun gap-insert-local-variables (&optional arg variables)
   "Insert a local variable statement for the current function.
 With `prefix-arg' temporarily invert the value of
 `gap-regenerate-local-statements'.
@@ -713,11 +721,12 @@ an existing local statement or insert a new one.
 If `gap-local-statements-at-beginning' is non-nil the local
 statement is inserted on the first line after the argument list
 of the function definition.  Otherwise the local statement is
-inserted before the line the cursor is on.  This function assumes
-that a variable is local if occurs on the left-hand side of an
-assignment statement or occurs as the index variable of a do
-loop.  You may have to trim globals from the list if you assign
-values to them.
+inserted before the line the cursor is on.
+
+This function assumes that a variable is local if occurs on the
+left-hand side of an assignment statement or occurs as the index
+variable of a do loop.  You may have to trim globals from the
+list if you assign values to them.
 
 This function will skip over any embedded local function declarations, and
 may be invoked within a local function definition to generate a local
@@ -728,47 +737,48 @@ Formatting of the local statement is determined by
   ;; Not very efficient, but it seems to work
   (interactive "P")
   (let ((formal nil)
-        (names nil)
+        (names variables)
         (regenerate (if arg
                         (not gap-regenerate-local-statements)
                       gap-regenerate-local-statements))
         p1 p2 name)
-    ;; Find variables
-    (save-excursion
-      (if (not (gap-find-matching "\\<function\\>" "\\<end\\>" nil t t))
-          (error "no end of function!"))
-      (setq p2 (point))
-      (if (not (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t))
-          (error "no beginning of function"))
-      (if (not (looking-at "function *("))
-          (error "bad beginning of function"))
-      (goto-char (match-end 0))
-      (while (looking-at " *\\([a-z][a-z0-9_]*\\),?")
-        (setq formal (append formal
-                             (list (buffer-substring
-                                    (match-beginning 1) (match-end 1)))))
-        (goto-char (match-end 0)))
-      (while (gap-searcher 're-search-forward
-                           (concat
-                            "\\(" "\\(^\\|;\\) *\\([a-z][a-z0-9_]*\\) *:= *"
-                            "\\|" "\\(^\\|;\\) *for +\\([a-z][a-z0-9_]*\\)"
-                            " +in\\>" "\\)")
-                           p2 t '(match-beginning 0))
-        (cond ((looking-at "\\(^\\|;\\) *\\([a-z][a-z0-9_]*\\) *:= *")
-               (setq name (buffer-substring (match-beginning 2) (match-end 2)))
-               (goto-char (match-end 0))
-               (if (looking-at "function *(")
-                   (progn
-                     (goto-char (match-end 0))
-                     (if (not (gap-find-matching "\\<function\\>"
-                                                 "\\<end\\>" nil t t))
-                         (error "No local function end?!")))))
-              ((looking-at "\\(^\\|;\\) *for +\\([a-z][a-z0-9_]*\\) +in\\>")
-               (setq name (buffer-substring (match-beginning 2) (match-end 2)))
-               (goto-char (match-end 0)))
-              (t (error "gap-insert-local-variables incorrect code!")))
-        (if (not (memberequal name names))
-            (setq names (append names (list name))))))
+    ;; Find variables unless passed in
+    (unless names
+      (save-excursion
+        (if (not (gap-find-matching "\\<function\\>" "\\<end\\>" nil t t))
+            (error "no end of function!"))
+        (setq p2 (point))
+        (if (not (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t))
+            (error "no beginning of function"))
+        (if (not (looking-at "function *("))
+            (error "bad beginning of function"))
+        (goto-char (match-end 0))
+        (while (looking-at " *\\([a-z][a-z0-9_]*\\),?")
+          (setq formal (append formal
+                               (list (buffer-substring
+                                      (match-beginning 1) (match-end 1)))))
+          (goto-char (match-end 0)))
+        (while (gap-searcher 're-search-forward
+                             (concat
+                              "\\(" "\\(^\\|;\\) *\\([a-z][a-z0-9_]*\\) *:= *"
+                              "\\|" "\\(^\\|;\\) *for +\\([a-z][a-z0-9_]*\\)"
+                              " +in\\>" "\\)")
+                             p2 t '(match-beginning 0))
+          (cond ((looking-at "\\(^\\|;\\) *\\([a-z][a-z0-9_]*\\) *:= *")
+                 (setq name (buffer-substring (match-beginning 2) (match-end 2)))
+                 (goto-char (match-end 0))
+                 (if (looking-at "function *(")
+                     (progn
+                       (goto-char (match-end 0))
+                       (if (not (gap-find-matching "\\<function\\>"
+                                                   "\\<end\\>" nil t t))
+                           (error "No local function end?!")))))
+                ((looking-at "\\(^\\|;\\) *for +\\([a-z][a-z0-9_]*\\) +in\\>")
+                 (setq name (buffer-substring (match-beginning 2) (match-end 2)))
+                 (goto-char (match-end 0)))
+                (t (error "gap-insert-local-variables incorrect code!")))
+          (if (not (memberequal name names))
+              (setq names (append names (list name)))))))
     (save-excursion
       ;; Goto to insertion point
       (if (not gap-local-statements-at-beginning)
@@ -818,7 +828,6 @@ Formatting of the local statement is determined by
                   (insert-char ?  (nth 1 gap-local-statement-format)))))
           (insert ";\n"))))))
 
-;; TODO: add an option to automatically insert the local statement if not found.
 (defun gap-add-local-variable (ident)
   "Add a local variable to the local statement of the current function.
 Prompts for name with default the identifier at the point. If
@@ -837,9 +846,12 @@ there is no local variable statement yet, signals error."
           local-start)
       (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1)
       (goto-char (match-end 0))
-      (gap-find-matching "\\<function\\>" "\\<local\\>" "\\<function\\>" t)
+      (gap-find-matching "\\<function\\>" "\\<local\\>" "\\<function\\>" t t)
       (if (not (looking-at "local"))
-          (error "No local statement. Add one first.")
+          (if (not gap-local-variable-inserts-statement)
+              (error "No local statement. Add one first.")
+            (goto-char pos)
+            (gap-insert-local-variables nil (list ident)))
         (setq local-start (point))
         (gap-search-forward-end-stmt pos 1 'end)
         (forward-char -1)
