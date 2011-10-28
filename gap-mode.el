@@ -369,7 +369,7 @@ of communicating with a running GAP process."
     ;; only be for gap-process-mode, but they shouldn't show up in a
     ;; gap file and it's easier this way.
     ("^Variable: '.*' must have a value" . font-lock-warning-face)
-    ("^Syntax error:.*"                  . font-lock-warning-face)
+    ;; ("^Syntax error:.*"                  . font-lock-warning-face)
     ("^\\s *\\^$"                        . font-lock-warning-face)
     ;; TODO: This was a pretty arbitrary choice of face...
     (,gap-prompt-regexp                  . font-lock-preprocessor-face)
@@ -1268,7 +1268,8 @@ were at that buffer position. "
     (looking-at s)))
 
 (defun gap-back-to-indentation ()
-  "Go to first before the non indentation character."
+  "Go to first before the non indentation character.
+Accounts for selective display."
   (gap-beginning-of-line)
   (skip-chars-forward " \t"))
 

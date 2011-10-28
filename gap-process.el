@@ -261,7 +261,8 @@ when GAP will be trying to complete a symbol before point."
      ((eq gap-send-state 'normal)
       (set-buffer (process-buffer proc))
       (scrolling-process-filter
-       proc (string-strip-chars string "\C-g\C-h\C-m"))
+       proc (buttonize-syntax-error (string-strip-chars string "\C-g\C-h\C-m")))
+
       (set-marker (process-mark proc) (point)))
      ((eq gap-send-state 'echo)
       (set-buffer (process-buffer proc))
@@ -275,8 +276,9 @@ when GAP will be trying to complete a symbol before point."
 ;;;                                          "\C-g\C-h\C-m"))             ;;GEZ: NTEmacs: get back 1st line of output
 ;;; NOTE: end NTEmacs specific code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-              (insert (string-strip-chars (substring string (+ x 1))    ;;GEZ: original
-                                          "\C-g\C-h\C-m"))              ;;GEZ: original
+              (insert (buttonize-syntax-error
+                       (string-strip-chars (substring string (+ x 1))    ;;GEZ: original
+                                           "\C-g\C-h\C-m")))              ;;GEZ: original
               (set-marker (process-mark proc) (point))))))
      ((eq gap-send-state 'completing)
       (let ((x (string-match "\C-g" string)))
@@ -290,7 +292,6 @@ when GAP will be trying to complete a symbol before point."
     (set-buffer cbuf)))
 
 ;; TODO: problem with Combinations
-;; TODO: make links to click on numbers when we have to choose
 (defun gap-help-filter (proc string)
   "This output filter pipes the output of a help command into a *Help* buffer.
 It must handle the -- <space> page, <n> next line, <b> back, <p> back line, <q> quit -- prompts,    ;; GEZ: GAP 4.4.x
@@ -481,5 +482,32 @@ is visible, try to keep the end on screen."
       (goto-char (process-mark proc))
       (insert-before-markers str))
     (set-buffer obuf)))
+
+(defface gap-clickable-syntax-error
+  '((t (:underline t :inherit font-lock-warning-face)))
+  "Face for clickable syntax error messages in *GAP* buffer."
+  :group 'gap)
+
+(define-button-type 'gap-syntax-error
+  'face 'gap-clickable-syntax-error
+  'help-echo "mouse-2, RET: visit this syntax error"
+  )
+
+(defun buttonize-syntax-error (string)
+  (let ((start 0))
+    (while (string-match "^Syntax error: .* in \\(.*\\) line \\([0-9]+\\)$" string start)
+      (let ((fun `(lambda (button)
+                    (find-file ,(match-string-no-properties 1 string))
+                    (goto-char (point-min))
+                    (forward-line ,(string-to-number (match-string-no-properties 2 string))))))
+        (add-text-properties (match-beginning 0) (match-end 0)
+                             (list
+                              'button t
+                              'category (button-category-symbol 'gap-syntax-error)
+                              'action fun
+                              'mouse-action fun)
+                             string))
+      (setq start (match-end 0)))
+    string))
 
 (provide 'gap-process)
