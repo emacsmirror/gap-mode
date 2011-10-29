@@ -399,8 +399,8 @@ For format of ths variable see `font-lock-keywords'.")
     (define-key map "\C-ce"    'gap-eval-defun)
     (define-key map "\C-c\C-e" 'gap-eval-last-statement)
     (define-key map "\C-c\C-r" 'gap-eval-region)
-    (define-key map "\C-c\C-f" 'gap-eval-buffer)
-    (define-key map "\C-c\C-k" 'gap-eval-file)
+    (define-key map "\C-c\C-b" 'gap-eval-buffer)
+    (define-key map "\C-c\C-f" 'gap-eval-file)
     ;; Menu
     (easy-menu-define gap-menu map "GAP Mode menu"
       `("GAP" :help "GAP-specific Features"
@@ -435,6 +435,8 @@ For format of ths variable see `font-lock-keywords'.")
         "-"
         ["Start GAP interpreter or switch to it" gap
          :help "Run inferior GAP in separate buffer"]
+        ["Read file" gap-eval-file :active (gap-okay-to-run)
+         :help "Send Read(\"...\") to inferior GAP session"]
         ["Eval buffer" gap-eval-buffer :active (gap-okay-to-run)
          :help "Evaluate entire buffer in inferior GAP session"]
         ["Eval region" gap-eval-region :active (and mark-active (gap-okay-to-run))
