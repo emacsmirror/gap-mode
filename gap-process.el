@@ -228,6 +228,7 @@ when it thinks GAP is waiting for it (using gap-prompt-regexp)."
     (set-buffer (process-buffer proc))
     (goto-char (point-max))
     (insert (string-strip-chars string "\C-h\C-g\C-m"))
+    (set-marker comint-last-output-start (point))
     (set-marker (process-mark proc) (point))
     (if (and gap-process-beep (string-match "\C-g" string))
         (beep))
@@ -260,6 +261,7 @@ when GAP will be trying to complete a symbol before point."
     (cond
      ((eq gap-send-state 'normal)
       (set-buffer (process-buffer proc))
+      (set-marker comint-last-output-start (point))
       (scrolling-process-filter
        proc (buttonize-syntax-error (string-strip-chars string "\C-g\C-h\C-m")))
 
@@ -270,6 +272,7 @@ when GAP will be trying to complete a symbol before point."
         (if x
             (progn
               (setq gap-send-state 'normal)
+              (set-marker comint-last-output-start (point))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; NOTE: this section is only needed for NTEmacs
 ;;;       (insert (string-strip-chars string                        ;;GEZ: NTEmacs: get back 1st line of output
