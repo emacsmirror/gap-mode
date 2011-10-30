@@ -67,6 +67,7 @@
 ;;!   the same as the GAP C-l previous input command. Moved recenter
 ;;!   to C-c C-l to make room.
 (require 'comint)
+(require 'ansi-color) ;; We need ansi-color-filter-apply
 ;; TODO: problem with interrupting while printing output.
 ;; TODO: `comint-previous-similar-input' doesn't exist??
 ;;{{{ defcustoms
@@ -201,8 +202,7 @@ the ? by C-q to insert a ? in the buffer instead of callig help.
 
   (interactive)
   (comint-mode)
-  (make-local-variable 'comint-prompt-regexp)
-  (setq comint-prompt-regexp gap-prompt-regexp)
+  (set (make-local-variable 'comint-prompt-regexp) gap-prompt-regexp)
   (set (make-local-variable 'comint-use-prompt-regexp) t)
   (set (make-local-variable 'comint-eol-on-send) t)
   (setq major-mode 'gap-process-mode)
@@ -464,7 +464,8 @@ containing initial standard input to process."
            (get-buffer buffname)))))
 
 (defun string-strip-chars (string strip)
-  "Take STRING and remove characters in STRIP"
+  "Take STRING and remove characters in STRIP.
+Also strip ANSI escape sequences."
   (while (> (length strip) 0)
     (let ((pos 0))
       (setq pos (string-match (substring strip 0 1) string pos))
@@ -473,7 +474,10 @@ containing initial standard input to process."
                              (substring string (+ pos 1))))
         (setq pos (string-match (substring strip 0 1) string pos)))
       (setq strip (substring strip 1))))
-  string)
+  ;; We call ansi-color-filter-apply rather than adding it to
+  ;; comint-preoutput-filter-functions since that doesn't get called
+  ;; for the completions and help buffers.
+  (ansi-color-filter-apply string))
 
 ;; Jim Thompson's scrolling output filter
 (defun scrolling-process-filter (proc str)
