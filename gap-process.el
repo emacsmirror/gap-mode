@@ -305,6 +305,7 @@ the output until it is done."
     (setq buffer-read-only nil)                                     ;; GEZ: so we can put help info into the buffer
     (goto-char (point-max))
     (insert string)
+    (ansi-color-filter-region (point-min) (point-max))
     (beginning-of-line)
     (if (re-search-forward
          "  -- <space> page, <n> next line, <b> back, <p> back line, <q> quit --"
