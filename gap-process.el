@@ -69,7 +69,6 @@
 (require 'comint)
 (require 'ansi-color) ;; We need ansi-color-filter-apply
 ;; TODO: problem with interrupting while printing output.
-;; TODO: `comint-previous-similar-input' doesn't exist??
 ;;{{{ defcustoms
 
 (defcustom gap-executable "/usr/local/algebra/bin/gap"
@@ -127,7 +126,7 @@ Otherwise signals an error."
   (define-key gap-process-map "\C-m" 'gap-send)
   (define-key gap-process-map "\t" 'gap-complete)
   (define-key gap-process-map "?" 'gap-help)
-  (define-key gap-process-map "\C-l" 'comint-previous-similar-input)
+  (define-key gap-process-map "\C-l" 'comint-previous-matching-input-from-input)
   (define-key gap-process-map "\C-c\C-l" 'recenter)
   (define-key gap-process-map "\C-c\C-c" 'comint-interrupt-subjob)
   (define-key gap-process-map "\C-c\C-z" 'comint-stop-subjob)
@@ -201,7 +200,7 @@ Consult the help for comint-mode for a list of special comint features. Prefix
 the ? by C-q to insert a ? in the buffer instead of callig help.
   ?     gap-help
   TAB   gap-complete
-  C-l   comint-previous-similar-input  (C-c C-l for recenter)"
+  C-l   comint-previous-matching-input-from-input  (C-c C-l for recenter)"
 
   (interactive)
   (comint-mode)
