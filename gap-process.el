@@ -147,6 +147,9 @@ Otherwise signals an error."
 
 (defvar gap-pending-pointer nil)
 
+(defvar gap-completing-buffer nil
+  "The buffer which is currently completing.")
+
 (defun gap-running-p ()
   "Return non-nil if GAP interpreter is running."
   (and gap-process-buffer
@@ -351,43 +354,62 @@ the output until it is done."
 (defun gap-completions-filter (proc string)
   "This output filter pipes the list of all completions of a symbol into
 a *Completions* buffer."
-  (let ((cbuf (current-buffer)))
-    (set-buffer "*Completions*")
-    (setq buffer-read-only nil)                                     ;; GEZ: so we can put completions into the buffer
+  (with-current-buffer (get-buffer-create "*Completions*")
+    (setq buffer-read-only nil) ;; GEZ: so we can put completions into the buffer
     (goto-char (point-max))
     (insert (string-strip-chars string "\C-g\C-m\C-h"))
     (beginning-of-line)
-    (if (looking-at (concat gap-prompt-regexp ".*"
-                            gap-completion-ident
-                            (make-string (length gap-completion-ident)
-                                         (string-to-char " "))))
-        (progn
-          (delete-region (point) (point-max))
-          (let ((win (get-buffer-window (current-buffer)))
-                (lines (count-lines (point-min) (point)))
-                p1 rect)
-            (if (not
-                 (and gap-complete-double-cols
-                      (or (and win
-                               (> lines (window-height win))
-                               (> (window-width win) 79))
-                          (not (eq gap-complete-double-cols t)))))
-                nil
-              (forward-line (- 1 (/ lines 2)))
-              (beginning-of-line)
-              (setq p1 (point))
-              (goto-char (point-max))
-              (insert (make-string (- 39 (move-to-column 39)) ? ))
-              (setq rect (delete-extract-rectangle p1 (point)))
-              (goto-char (point-min)) (forward-line 1)
-              (insert (make-string (- 39 (move-to-column 39)) ? ))
-              (insert-rectangle rect)))
-          (set-process-filter proc 'gap-output-filter)))
-    (set-buffer cbuf)))
+    ;; We have all the completions since we see a prompt
+    ;; (set-process-filter proc 'gap-output-filter)
+    (when (looking-at (concat gap-prompt-regexp ".*"
+                              gap-completion-ident
+                              (make-string (length gap-completion-ident) ?\ )))
+      ;; Delete the prompt
+      (delete-region (point) (point-max))
+      ;; Make it double columned
+      (let ((win (get-buffer-window (current-buffer)))
+            (lines (count-lines (point-min) (point)))
+            p1 rect)
+        (when (and gap-complete-double-cols
+                   (or (and win
+                            (> lines (window-height win))
+                            (> (window-width win) 79))
+                       (not (eq gap-complete-double-cols t))))
+          (forward-line (- 1 (/ lines 2)))
+          (beginning-of-line)
+          (setq p1 (point))
+          (goto-char (point-max))
+          (insert (make-string (- 39 (move-to-column 39)) ? ))
+          (setq rect (delete-extract-rectangle p1 (point)))
+          (goto-char (point-min)) (forward-line 2)
+          (insert (make-string (- 39 (move-to-column 39)) ? ))
+          (insert-rectangle rect)))
+      ;; Buttonize
+      (goto-char (point-min))
+      (while (re-search-forward (concat "\\<" gap-completion-ident "\\sw+") nil t)
+        (let ((fun `(lambda (button)
+                      (quit-window)
+                      (set-buffer gap-completing-buffer)
+                      (goto-char (point-max))
+                      (if (not (looking-back ,gap-completion-ident))
+                          (error "Not completing")
+                        (delete-backward-char ,(length gap-completion-ident))
+                        (insert ,(match-string-no-properties 0))))))
+          (add-text-properties (match-beginning 0) (match-end 0)
+                               (list
+                                'button t
+                                'category 'default-button
+                                'face 'default
+                                'mouse-face 'highlight
+                                ;; 'category (button-category-symbol 'gap-syntax-error)
+                                'action fun
+                                'mouse-action fun))))
+      ;; Return to normal output
+      (set-process-filter proc 'gap-output-filter))))
 
 (defun gap-complete (&optional full)
-  "Complete the partial identifier preceeding point. With arg, send two
-TABs to GAP to get a full list of the completions."
+  "Complete the partial identifier preceeding point.
+With arg, send two TABs to GAP to get a full list of completions."
   (interactive "*")
   (let ((process (get-buffer-process gap-process-buffer)))
     (if (not (gap-running-p))
@@ -406,7 +428,9 @@ TABs to GAP to get a full list of the completions."
       (unwind-protect
           (progn
             (with-output-to-temp-buffer "*Completions*"
-              (print-help-return-message))
+              (let ((buffer-read-only nil))
+                (print-help-return-message)))
+            (setq gap-completing-buffer (current-buffer))
             (set-process-filter process 'gap-completions-filter)
             (process-send-string process (concat gap-completion-ident
                                                  "\t\t\C-x")))))))
