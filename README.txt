@@ -106,8 +106,8 @@ the same place.  Add the following lines to your ".emacs" startup file.
 
     ;; gap mode
     (autoload 'gap-mode "gap-mode" "Gap editing mode" t)
-    (setq auto-mode-alist (append (list '("\\.g$" . gap-mode)
-                                        '("\\.gap$" . gap-mode))
+    (setq auto-mode-alist (append (list '("\\.g\\'" . gap-mode)
+                                        '("\\.gap\\'" . gap-mode))
                                   auto-mode-alist))
     (autoload 'gap "gap-process" "Run GAP in emacs buffer" t)
 
@@ -126,6 +126,8 @@ Originally written by
 Michael Smith
 Mathematics Research Section
 Australian National University.
+
+Contributions by Gary Zablackis
 
 Now maintained by
 

@@ -1,78 +1,93 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Begin update gap-process.el
+;;; gap-process.el --- Run a GAP session in Emacs
 ;;
-;; Running a GAP session in an Emacs buffer, based on comint-mode.
+;; Author: Michael Smith <smith@pell.anu.edu.au>
+;;	Gary Zablackis
+;;	Goetz Pfeiffer
+;;	Ivan Andrus <darthandrus@gmail.com>
+;; Maintainer: Ivan Andrus <darthandrus@gmail.com>
+;; Version: 2.0
+;; Keywords: gap, comint
+;; URL: https://bitbucket.org/gvol/gap-mode
+
+;; This file is part NOT of GNU Emacs.
+
+;;; Commentary:
+
+;; Runs a GAP session in an Emacs buffer and is based on comint-mode.
+;; To run GAP, just type "M-x gap".
+;;
+;; Command completion is available by pressing "TAB".  Completions are
+;; sent to a separate *Completions*.
+;;
+;; Help is available at any time (that GAP is not busy) by pressing
+;; "?".  Output is to *Help* buffer.
+;;
+;; To install, put this file somewhere in your load path, and add the
+;; following line to your .emacs:
+;;
+;;    (autoload 'gap "gap-process" "*Run GAP" t)
+;;
+;; You will probably have to set the path to your gap executable and
+;; command line options, either via (customize-group 'gap) or by
+;; adding (a properly modified version of)
+;;
+;;    (setq gap-executable "/path/to/gap"
+;;          gap-start-options '("-f" "-b" "-m" "2g"))
+;;
+;; to your .emacs file.
+;;
+;; Note that the commands `gap-complete' and `gap-help' can be bound
+;; to keys in other buffers to issue commands to the running GAP
+;; process.  If no process is running, they will either cause an error
+;; or start a GAP process depending on the value of
+;; `gap-auto-start-gap'.
+
+;;; History:
 ;;
 ;; Michael Smith                        smith@pell.anu.edu.au
 ;; Australian National University
 ;; February 1993
 ;;
-;;! Changed from version 1.50,  15:44 Thu 22 Apr 1993
-;;! by Gary Zablackis (4/2005)
+;; Changed from version 1.50,  15:44 Thu 22 Apr 1993
+;; by Gary Zablackis (4/2005)
 ;;
 ;; A modification and extension of the GAP mode of Goetz Pfeiffer.
 ;;
 ;; Uses comint-mode instead of shell-mode (which means you must have the
 ;; comint package installed).
-;;
-;; Command completion is available ("TAB"). Output to separate *Completions*
-;; buffer instead of GAP session.
-;;
-;; Help is available at any time by pressing "?". Output to *Help* buffer.
-;;
-;; The comint package provides command input history (with searching),
-;; resend previous line etc.
-;;
-;; To install, put this file somewhere in your load path, preferably byte
-;; compile it, and add the following line to your .emacs:
-;;
-;;    (autoload 'gap "gap-process" "*Run GAP" t)
-;;
-;; You can also have GAP start up in a particular directory by setting
-;; gap-directory; for example:
-;;
-;;    (setq gap-directory "~/gap")
-;;
-;; To run GAP, just type "M-x gap".
-;;
-;; To run GAP with contents of current buffer as initial input use a prefix
-;; arg, "C-u M-x gap" (this is still a bit of a hack, so use with caution).
-;;
-;; Note that while a GAP process is running in the *gap* buffer, the commands
-;; gap-complete and gap-help can be bound to keys in other buffers to issue
-;; commands to the running GAP process.
-;;
-;;! ----------------------------------------------------------------------
-;;! v1.50 -
-;;! * Fixed problem of disappearing output when point not in *gap* buffer.
-;;!   Also ensure that output scrolls if visible in window.
-;;! v1.20 -
-;;! * Allow switching to existing process buffer if it exists, also piping
-;;!   current buffer into it if prefix arg.
-;;! v1.12 -
-;;! * Included "brk>" in prompt-regexp. How could I forget this!
-;;! v1.10 -
-;;! * Now gap-complete-double-cols controls formatting of completions buff.
-;;! v1.08 -
-;;! * Fixed gap-prompt-regexp so that a > in line would not be confused.
-;;! v1.07 -
-;;! * Fixed cosmetic problem with *help* output. Now instead of stripping
-;;!   all the ^H and ^M from the output, leave it unchanged and tidy up
-;;!   buffer after help output has finished.
-;;! v1.06 -
-;;! * Fixed bug in gap-ident-around-point that caused non-word characters
-;;!   to end up in the extracted identifier.
-;;! v1.05 -
-;;! * Added C-l to call comint-previous-similar-input, which is almost
-;;!   the same as the GAP C-l previous input command. Moved recenter
-;;!   to C-c C-l to make room.
+;; v1.50 -
+;; * Fixed problem of disappearing output when point not in *gap* buffer.
+;;   Also ensure that output scrolls if visible in window.
+;; v1.20 -
+;; * Allow switching to existing process buffer if it exists, also piping
+;;   current buffer into it if prefix arg.
+;; v1.12 -
+;; * Included "brk>" in prompt-regexp. How could I forget this
+;; v1.10 -
+;; * Now gap-complete-double-cols controls formatting of completions buff.
+;; v1.08 -
+;; * Fixed gap-prompt-regexp so that a > in line would not be confused.
+;; v1.07 -
+;; * Fixed cosmetic problem with *help* output. Now instead of stripping
+;;   all the ^H and ^M from the output, leave it unchanged and tidy up
+;;   buffer after help output has finished.
+;; v1.06 -
+;; * Fixed bug in gap-ident-around-point that caused non-word characters
+;;   to end up in the extracted identifier.
+;; v1.05 -
+;; * Added C-l to call comint-previous-similar-input, which is almost
+;;   the same as the GAP C-l previous input command. Moved recenter
+;;   to C-c C-l to make room.
+
+;;; Code:
+
 (require 'comint)
 (require 'ansi-color) ;; We need ansi-color-filter-apply
 ;; TODO: problem with interrupting while printing output.
 ;;{{{ defcustoms
 
 (defcustom gap-executable "/usr/local/algebra/bin/gap"
-  "Path to the GAP executable"
+  "Path to the GAP executable."
   :group 'gap
   :type 'file)
 
@@ -89,8 +104,7 @@ You may need to specify -f to force line editing."
 
 (defcustom gap-directory nil
   "If non-nil, change to this directory before running GAP.
-Otherwise will just use the default directory of the new *GAP*
-buffer."
+Otherwise will use the default directory of the new *GAP* buffer."
   :group 'gap
   :type '(choice (const nil)
                  file))
@@ -104,7 +118,7 @@ buffer."
 (defcustom gap-complete-double-cols t
   "Controls final formatting of the GAP completions buffer.
 If t and buffer is currently shown with more than 80 columns and
-not enough lines, then make the list double columned. If not nil
+not enough lines, then make the list double columned.  If not nil
 or t, then always make the completions list double columnes."
   :group 'gap
   :type '(choice (const :tag "Never use double columns" nil)
@@ -133,10 +147,10 @@ Otherwise signals an error."
   )
 
 (defvar gap-send-state nil
-  "Variable used by filter to trap echos and completion in GAP output")
+  "Variable used by filter to trap echos and completion in GAP output.")
 
 (defvar gap-completion-ident nil
-  "Stores identifier that GAP is completing")
+  "Stores identifier that GAP is completing.")
 
 (defvar gap-process-buffer nil
   "Points to a running gap session.")
@@ -157,17 +171,15 @@ Otherwise signals an error."
            'run)))
 
 (defun gap-okay-to-run ()
-  "Return non-nil if it's okay to .
+  "Return non-nil if it's okay to interact with a GAP process.
 See `gap-auto-start-gap'."
   (or gap-auto-start-gap
       (gap-running-p)))
 
 (defun gap (&optional send-buffer)
-  "Start up a GAP session in a comint-mode buffer.
-With prefix arg, send the contents of the current buffer to the
-GAP session as initial standard input. Switch to existing *gap*
-buffer if process is already running, also sending current buffer
-if prefix arg."
+  "Start or switch to a GAP session.
+If SEND-BUFFER is non-nil, send the contents of the current
+buffer to the GAP session as initial standard input."
   (interactive "P")
   (if (not (gap-running-p))
       (let (proc)
@@ -194,14 +206,15 @@ if prefix arg."
     (switch-to-buffer gap-process-buffer)))
 
 (defun gap-process-mode ()
-  "Major mode for interacting with Gap. Provides special support for the help
-system (hit ? anytime for help on symbol under point) and completion (TAB).
-Consult the help for comint-mode for a list of special comint features. Prefix
-the ? by C-q to insert a ? in the buffer instead of callig help.
-  ?     gap-help
-  TAB   gap-complete
-  C-l   comint-previous-matching-input-from-input  (C-c C-l for recenter)"
+  "Major mode for interacting with GAP.
+\\<gap-process-map>Provides support for completion (via \\[gap-complete]) and GAP's help
+system.  Invoking \\[gap-help] will provide help on the current
+GAP identifier.
 
+Since `gap-process-mode' inherits from `comint-mode' it's
+features are also relevant.  As a convenience for GAP users
+\\[comint-previous-matching-input-from-input] has been bound to `comint-previous-matching-input-from-input'
+which is much like GAP's C-l (\\[recenter] can be used to recenter)."
   (interactive)
   (comint-mode)
   (set (make-local-variable 'comint-prompt-regexp) gap-prompt-regexp)
@@ -222,10 +235,10 @@ the ? by C-q to insert a ? in the buffer instead of callig help.
   (comint-send-input))
 
 (defun gap-startfile-filter (proc string)
-  "This function is the output filter for the GAP process while there is
-still initial standard input to pipe into the process.  To avoid problems
-with overflowing input buffers, this function sends the next line of input
-when it thinks GAP is waiting for it (using gap-prompt-regexp)."
+  "Filter the GAP process while standard input remains to be sent.
+To avoid problems with overflowing input buffers, this function
+sends the next line of input when it thinks GAP is waiting for
+it (using `gap-prompt-regexp')."
   (let ((cbuf (current-buffer)))
     (set-buffer (process-buffer proc))
     (goto-char (point-max))
@@ -254,11 +267,12 @@ when it thinks GAP is waiting for it (using gap-prompt-regexp)."
     (set-buffer cbuf)))
 
 (defun gap-output-filter (proc string)
-  "This function handles the output from a GAP process most of the time.
+  "Filter the output from a GAP process most of the time.
 It depends on the variable `gap-send-state' to determine which of three
-possible output states GAP is in: 'normal for output that should be shown,
-'echo for the GAP echoing of the last command  (suppressed), and 'completing
-when GAP will be trying to complete a symbol before point."
+possible output states GAP is in:
+    'normal for output that should be shown;
+    'echo for the GAP echoing of the last command (suppressed);
+    'completing when GAP will be trying to complete a symbol before point."
   (let ((cbuf (current-buffer)))
     (cond
      ((eq gap-send-state 'normal)
@@ -301,10 +315,9 @@ when GAP will be trying to complete a symbol before point."
 
 ;; TODO: problem with Combinations
 (defun gap-help-filter (proc string)
-  "This output filter pipes the output of a help command into a *Help* buffer.
-It must handle the -- <space> page, <n> next line, <b> back, <p> back line, <q> quit -- prompts,    ;; GEZ: GAP 4.4.x
-strip them and send spaces to continue                                                              ;; GEZ: GAP 4.4.x
-the output until it is done."
+  "Filter the output a help command into a *Help* buffer.
+It must handle the continuation prompts by stripping them and
+sending spaces to continue the output until finished."
   (let ((cbuf (current-buffer)))
     (set-buffer "*Help*")
     (setq buffer-read-only nil)                                     ;; GEZ: so we can put help info into the buffer
@@ -351,8 +364,10 @@ the output until it is done."
     (set-buffer cbuf)))
 
 (defun gap-completions-filter (proc string)
-  "This output filter pipes the list of all completions of a symbol into
-a *Completions* buffer."
+  "Filter all completions of a symbol into a *Completions* buffer.
+Fontify completions so that they can be clicked to complete in
+the process buffer.  Depending on the value of
+`gap-complete-double-cols' make two columns."
   (with-current-buffer (get-buffer-create "*Completions*")
     (setq buffer-read-only nil) ;; GEZ: so we can put completions into the buffer
     (goto-char (point-max))
@@ -405,8 +420,8 @@ a *Completions* buffer."
       (set-process-filter proc 'gap-output-filter))))
 
 (defun gap-complete (&optional full)
-  "Complete the partial identifier preceeding point.
-With arg, send two TABs to GAP to get a full list of completions."
+  "Complete the partial identifier at point.
+With FULL, send two TABs to GAP to get a full list of completions."
   (interactive "*")
   (let ((process (get-buffer-process gap-process-buffer)))
     (if (not (gap-running-p))
@@ -433,18 +448,23 @@ With arg, send two TABs to GAP to get a full list of completions."
                                                  "\t\t\C-x")))))))
 
 (defun ensure-gap-running (&optional noerr)
-  "If GAP process is not running, throw an error or start it.
-This is meant to be called in a function before doing something
-which requires the GAP interpreter to be running such as
-`gap-complete'.  If `gap-auto-start-gap' is non-nil then start a
-new process, otherwise throw an error.  "
+  "Ensure that a GAP process is running, or throw an error.
+If `gap-auto-start-gap' is non-nil then start a new process if
+one is not running.  If NOERR is non-nil return nil instead of
+throwing an error.
+
+This is meant to be called in a function such as `gap-complete'
+before doing something which requires the GAP interpreter to be
+running."
   (or (gap-running-p)
       (when gap-auto-start-gap (gap))
       (unless noerr (error "GAP not running"))
       nil))
 
 (defun gap-help (topic arg)
-  "Display GAP help about TOPIC in the *Help* buffer."
+  "Display GAP help about TOPIC in the *Help* buffer.
+If ARG is non-nil start a GAP process regardless of value of
+`gap-auto-start-gap'."
   (interactive
    (let ((enable-recursive-minibuffers t)
          (try-word (gap-ident-around-point))
@@ -456,11 +476,9 @@ new process, otherwise throw an error.  "
        (if (string-equal val "")
            (setq val try-word)))
      (list val current-prefix-arg)))
+  (let ((gap-auto-start-gap (or arg gap-auto-start-gap)))
+    (ensure-gap-running))
   (let ((process (get-buffer-process gap-process-buffer)))
-    (if (not (gap-running-p))
-        (if arg
-            (gap)
-          (error "No gap process running in buffer %s" gap-process-buffer)))
     (unwind-protect
         (progn
           (with-output-to-temp-buffer "*Help*"
@@ -470,7 +488,7 @@ new process, otherwise throw an error.  "
 
 (defun get-start-process (progm &optional name dir args startfile)
   "Run program PROGM in buffer *NAME* (or if NAME is nil use *PROGM*).
-Optionally sets the default directory. If already running, just switch.
+Optionally sets the default directory to DIR.  If already running, just switch.
 Has a optional list ARGS of command line arguments, and file STARTFILE
 containing initial standard input to process."
   (interactive)
@@ -488,7 +506,7 @@ containing initial standard input to process."
 
 (defun string-strip-chars (string strip)
   "Take STRING and remove characters in STRIP.
-Also strip ANSI escape sequences."
+Also strips ANSI escape sequences."
   (while (> (length strip) 0)
     (let ((pos 0))
       (setq pos (string-match (substring strip 0 1) string pos))
@@ -504,8 +522,8 @@ Also strip ANSI escape sequences."
 
 ;; Jim Thompson's scrolling output filter
 (defun scrolling-process-filter (proc str)
-  "Handle all output from the process PROC.  If the process buffer
-is visible, try to keep the end on screen."
+  "Handle all output from the process PROC.
+If the process buffer is visible, try to keep the end on screen."
   (let ((obuf (current-buffer)))
     (set-buffer (process-buffer proc)) ;this IS needed
     (save-excursion
@@ -524,6 +542,7 @@ is visible, try to keep the end on screen."
   )
 
 (defun buttonize-syntax-error (string)
+  "Propertize STRING so that syntax error messages are clickable."
   (let ((start 0))
     (while (string-match "^Syntax error: .* in \\(.*\\) line \\([0-9]+\\)$" string start)
       (let ((fun `(lambda (button)
@@ -541,3 +560,5 @@ is visible, try to keep the end on screen."
     string))
 
 (provide 'gap-process)
+
+;;; gap-process.el ends here

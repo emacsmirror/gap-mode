@@ -1,90 +1,101 @@
-;; GAP Programming mode for automatic indentation of GAP code.
+;;; gap-mode.el --- Major mode for editing files in the GAP programing language.
 ;;
-;; Michael Smith                        smith@pell.anu.edu.au
-;; Australian National University
-;; February 1993
+;; Author: Michael Smith <smith@pell.anu.edu.au>
+;;	Gary Zablackis
+;;	Goetz Pfeiffer
+;;	Ivan Andrus <darthandrus@gmail.com>
+;; Maintainer: Ivan Andrus <darthandrus@gmail.com>
+;; Version: 2.0
+;; Keywords: gap
+;; URL: https://bitbucket.org/gvol/gap-mode
+
+;; This file is part NOT of GNU Emacs.
+
+;;; Commentary:
+
+;; Provides fontification, indentation, and local variable
+;; functionality, for GAP code.  It also provides help and completion
+;; by asking an inferior GAP process.
 ;;
-;;! version 1.96, 23:10 Thu 11 May 1995
-;;!
-;;
-;;
-;; Major mode for writing GAP programs.
-;; Provides automatic indentation of GAP code.
-;;
-;; Installation:
-;;   Copy this file to somewhere in your load path, then put the
-;;   following lines in your .emacs file:
+;; Evaluating (customize-group 'gap) is an easy way to see what
+;; options are available.
+
+;;; Install:
+
+;; Copy this file to somewhere in your load path, then put the
+;; following lines in your .emacs file:
 ;;
 ;;      (autoload 'gap-mode "gap-mode" "GAP editing mode" t)
 ;;      (setq auto-mode-alist (apply 'list
-;;                                   '("\\.g$" . gap-mode)
-;;                                   '("\\.gap$" . gap-mode)
+;;                                   '("\\.g\\'" . gap-mode)
+;;                                   '("\\.gap\\'" . gap-mode)
 ;;                                   auto-mode-alist))
 ;;
 ;; Then visiting any file ending in ".g" or ".gap" will automatically put
 ;; you in gap-mode.  Alternatively, to enter gap-mode at anytime, just type
 ;;    M-x gap-mode
-;;
-;; While in gap-mode, type "C-h m" for help on its features.
-;;
-;;! ----------------------------------------------------------------------
-;;! v1.96 -
-;;! * Added a flag to choose whether the complete command (ESC-tab) simply
-;;!   calls dynamic abbreviation (dabbrev-expand), the default, or tries
-;;!   to complete the word by asking a running gap process.
-;;! v1.95 -
-;;! * Fixed bug in 'gap-insert-local-variables. It was only picking up
-;;!   variables that were the first on the line - a big problem.
-;;!   Finally fixed the treatment of local function definitions. It will
-;;!   now skip over locally defined functions when compiling the local
-;;!   variable list.
-;;! v1.92 -
-;;! * Defined my own "memberequal" function for checking strings in lists.
-;;! v1.90 -
-;;! * Fixed a bug in gap-insert-local-variables (stray "," appearing).
-;;! * Added variables gap-local-statement-format and
-;;!   gap-local-statement-margin for controlling format of local
-;;!   variable statement inserted. It now wraps the line correctly.
-;;! v1.85 -
-;;! * Added variables gap-insert-debug-name, gap-insert-debug-string to
-;;!   allow customization of debugging/print statements inserted by function
-;;!   gap-insert-debug-print.
-;;! v1.80 -
-;;! * New function gap-insert-local-variables for inserting a local variable
-;;!   statement for the current function at the point.
-;;! v1.70 -
-;;! * New function gap-insert-debug-print for inserting Inform(... lines.
-;;! v1.60 -
-;;! * Fixed the add-local-variable function so that it skips over local
-;;!   statements of functions defined within the current function.
-;;! v1.55 -
-;;! * Added a regular expression for gin-mode, and changed the fill region
-;;!   function to check if gin-mode is on, if so and in a comment, do
-;;!   fill-paragraph instead of indent region. Does this make sense?
-;;! v1.51 -
-;;! * Fixed silly error due to copying a magma-mode function across.
-;;! v1.50 -
-;;! * Fixed the function that leaps across if..else..fi and similar stmts.
-;;! v1.40 -
-;;! * Added new function 'gap-add-local-variable.
-;;! v1.30 -
-;;! * changed code to make it more compatible with outline-minor-mode.
-;;!   Many changes to regular expressions, adding "\C-m" whenever "\n"
-;;!   occurs, and modifiying many beginning-of-line etc functions.
-;;! v1.25 -
-;;! * eliminated bug introduced in last modification.
-;;! v1.20 -
-;;! * Made the special continued line handling more versatile.
-;;! v1.10 -
-;;! * Cleaned up code immensely. Should be much easier to understand.
-;;! * Fixed some bugs in special indentation checking where it could get
-;;!   confused with the contents of GAP strings (eg a ":=" in a string).
-;;! v1.01 -
-;;! * Just changed some defaults.
-;;! v1.00 -
-;;! * First release version.
 
-;;! Autoload functions from gap-process.
+;;; History:
+
+;; v1.96 -
+;; * Added a flag to choose whether the complete command (ESC-tab) simply
+;;   calls dynamic abbreviation (dabbrev-expand), the default, or tries
+;;   to complete the word by asking a running gap process.
+;; v1.95 -
+;; * Fixed bug in 'gap-insert-local-variables. It was only picking up
+;;   variables that were the first on the line - a big problem.
+;;   Finally fixed the treatment of local function definitions. It will
+;;   now skip over locally defined functions when compiling the local
+;;   variable list.
+;; v1.92 -
+;; * Defined my own "memberequal" function for checking strings in lists.
+;; v1.90 -
+;; * Fixed a bug in gap-insert-local-variables (stray "," appearing).
+;; * Added variables gap-local-statement-format and
+;;   gap-local-statement-margin for controlling format of local
+;;   variable statement inserted. It now wraps the line correctly.
+;; v1.85 -
+;; * Added variables gap-insert-debug-name, gap-insert-debug-string to
+;;   allow customization of debugging/print statements inserted by function
+;;   gap-insert-debug-print.
+;; v1.80 -
+;; * New function gap-insert-local-variables for inserting a local variable
+;;   statement for the current function at the point.
+;; v1.70 -
+;; * New function gap-insert-debug-print for inserting Inform(... lines.
+;; v1.60 -
+;; * Fixed the add-local-variable function so that it skips over local
+;;   statements of functions defined within the current function.
+;; v1.55 -
+;; * Added a regular expression for gin-mode, and changed the fill region
+;;   function to check if gin-mode is on, if so and in a comment, do
+;;   fill-paragraph instead of indent region. Does this make sense?
+;; v1.51 -
+;; * Fixed silly error due to copying a magma-mode function across.
+;; v1.50 -
+;; * Fixed the function that leaps across if..else..fi and similar stmts.
+;; v1.40 -
+;;* Added new function 'gap-add-local-variable.
+;; v1.30 -
+;; * changed code to make it more compatible with outline-minor-mode.
+;;   Many changes to regular expressions, adding "\C-m" whenever "\n"
+;;   occurs, and modifiying many beginning-of-line etc functions.
+;; v1.25 -
+;; * eliminated bug introduced in last modification.
+;; v1.20 -
+;; * Made the special continued line handling more versatile.
+;; v1.10 -
+;; * Cleaned up code immensely. Should be much easier to understand.
+;; * Fixed some bugs in special indentation checking where it could get
+;;   confused with the contents of GAP strings (eg a ":=" in a string).
+;; v1.01 -
+;; * Just changed some defaults.
+;; v1.00 -
+;; * First release version.
+
+;;; Code:
+
+;; Autoload functions from gap-process.
 (require 'gap-process)
 
 ;;{{{ defcustoms/defvars
@@ -97,63 +108,65 @@
   )
 
 (defcustom gap-indent-brackets t
-  "Whether to check back for unclosed brackets in determining
-indentation level. This is good for formatting lists and matrices."
+  "Whether unclosed brackets help determine indentation level.
+If non-nil take unclosed brackets into account, which is good for
+formatting lists and matrices."
   :group 'gap
   :type 'boolean
   :safe t)
 
 (defcustom gap-bracket-threshold 8
-  "If indentation due to bracketing will indent more than this value,
-use this value instead.  nil is equivalent to infinity."
+  "The maximum value which brackets will increase indentation.
+A value of nil is equivalent to infinity.  An integer value will
+help prevent deeply nested lists from being indented too far."
   :group 'gap
   :type '(choice (const :tag "No limit" nil)
                  (integer :tag "Bracket indentation limit"))
   :safe t)
 
 (defcustom gap-indent-step 4
-  "Amount of extra indentation for each level of grouping in GAP code."
+  "Amount of indentation for each level of grouping in GAP code."
   :group 'gap
   :type 'integer
   :safe t)
 
 (defcustom gap-indent-step-continued 2
-  "Amount of extra indentation to add for normal continued lines."
+  "Amount of indentation to add for normal continued lines."
   :group 'gap
   :type 'integer
   :safe t)
 
 (defcustom gap-indent-comments t
-  "Variable controlling how the indent command works on comments.  A comment
-will be indented to the next tab-stop if gap-indent-comments is:
+  "Controls how the indent command works on comments.
+A comment will be indented to the next tab-stop if `gap-indent-comments' is:
   0    and the cursor is on the # character
   1    and the cursor is 1 character to the right of the # character
   t    and the cursor is anywhere to the right of the # character
 If nil then use calculated indentation level only."
   :group 'gap
   :type '(choice (const :tag "Cursor on the # character" 0)
-                 (integer :tag "Cursor n characters to the right of #")
+                 (const :tag "Cursor 1 character to the right of #" 1)
                  (other :tag "Cursor to the right of the # character" t)
                  (const :tag "Calculated indentation only" nil))
   :safe t)
 
 (defcustom gap-indent-comments-flushleft nil
-  "If non-nil then indent comments based on `gap-indent-comments' regardless
-of whether the comment is flush-left or not.  Set this to nil to treat
-flush-left comments as special---i.e. not to be indented by pressing TAB."
+  "Whether flush-left comments should be indented normally.
+If non-nil then indent comments based on `gap-indent-comments'
+regardless of whether the comment is flush-left or not.  Set this
+to nil to not indent flush-left comments at all."
   :group 'gap
   :type 'boolean
   :safe t)
 
 (defcustom gap-auto-indent-comments t
-  "Controls whether the region indentation commands will change
-indentation of comment lines."
+  "Whether the region indentation commands indent comment lines."
   :group 'gap
   :type 'boolean
   :safe t)
 
 (defcustom gap-pre-return-indent t
-  "If non-nil indent the line before breaking to next line on RET keypress."
+  "If non-nil autoindent before inserting a newline when RET is pressed."
   :group 'gap
   :type 'boolean
   :safe t)
@@ -166,56 +179,58 @@ indentation of comment lines."
 
 (defcustom gap-electric-semicolon t
   "If non-nil a semicolon will create a newline as well.
-At the beginning of a line, instead add semicolon to the end of the
-previous line so that two semicolons in a row does the right thing."
+At the beginning of a line, instead adds semicolon to the end of the
+previous line so that two semicolons in a row does the right thing.
+If nil semicolons act normally."
   :group 'gap
   :type 'boolean
   :safe t)
 
 (defcustom gap-electric-equals t
-  "If non-nil equals will toggle between ':=' and '='.
-When set pressing equals will change a preceding := to = and vice
-versa.  When pressing equals not preceded by an equals sign or
-with a prefix agument it will simply insert an equals sign."
+  "If non-nil pressing equals will toggle between ':=' and '='.
+When pressing equals not preceded by an equals sign, or with a
+prefix argument, it will simply insert an equals sign.  If nil
+equals behaves normally."
   :group 'gap
   :type 'boolean
   :safe t)
 
+;; TODO: should update this to use filladapt which is more common I think
 ;; TODO: this probably shouldn't be a defcustom, but I don't know enough about `gin-mode'
 ;; I think if it's not used anymore, then I'll just rip it out.
 (defcustom gin-retain-indent-re "[ \t]*#+[ \t]*\\|[ \t]+"
-  "Regular expression for gin-mode's filling command to allow it to
-fill GAP comments"
+  "Regular expression to allow `gin-mode' to fill GAP comments."
   :group 'gap
   :type 'regexp
   :safe t)
 
 (defcustom gap-fill-if-gin nil
-  "Set to t to intelligently fill paragraphs if point is in comment and
-indent region command is run."
+  "If non-nil use `gin-mode' to fill paragraphs when \\<gap-mode-map>\\[gap-format-region] is called."
   :group 'gap
   :type 'boolean
   :safe t)
 
 (defcustom gap-tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44
                                  48 52 56 60 64 68 72 74 78)
-  "Gap-mode tab-stop-list.  Note this is effectively only used in the
-indentation of comments---all GAP code indentation depends on the
-variable gap-indent-step."
+  "Determines what columns comments should be indented to.
+Note this is only used in the indentation of comments, and only
+when `gap-indent-comments' is non-nil.  All GAP code indentation
+depends on the variable `gap-indent-step'.  Indentation of
+comments is also affected by `gap-indent-comments-flushleft'."
   :group 'gap
   :type '(repeat integer)
   :safe t)
 
 (defcustom gap-mode-hook nil
-  "Function to be called after turning `gap-mode' on for buffer."
+  "Hook run when entering GAP mode."
   :group 'gap
   :type 'hook
   :safe t)
 
 (defcustom gap-local-statement-format '(2 1)
-  "Two element list determining format of local var statement inserted.
-First element is number of spaces after \"local\", the second is number
-of spaces after each comma."
+  "Determines how local variable statements should be formatted.
+It is a two element list consisting of the number of spaces after
+\"local\", and the number of spaces after each comma."
   :group 'gap
   :type '(list integer integer)
   :safe t)
@@ -227,24 +242,23 @@ of spaces after each comma."
   :safe t)
 
 (defcustom gap-local-statements-at-beginning nil
-  "If non-nil then local variable statements should be inserted
-on first line of a function instead of the previous line."
+  "Determines where local variable statements should be inserted.
+If non-nil they are inserted on the first line of a function,
+otherwise they are inserted on the previous line."
   :group 'gap
   :type 'boolean
   :safe t)
 
 (defcustom gap-regenerate-local-statements nil
-  "If non-nil then local variable statements will be
-'regenerated' instead if they already exist instead of
-unconditinally inserted."
+  "If non-nil local var statements will deleted before new ones are created."
   :group 'gap
   :type 'boolean
   :safe t)
 
 (defcustom gap-local-variable-inserts-statement t
-  "If non-nil then calling `gap-add-local-variable' will
-automatically generate a local variable statement with the
-current variable if there is no existing statement."
+  "Determines whether adding a variable to a local statement can create it.
+If non-nil, \\<gap-mode-map>\\[gap-add-local-variable] will create a local var statement with the current
+variable if there is no existing statement.  Otherwise an error is signaled."
   :group 'gap
   :type 'boolean
   :safe t)
@@ -265,19 +279,18 @@ A %s is substituted with the name of the current function."
 ;; TODO: make a gap-completion-function which could be dabbrev or not.
 ;; Then deprecate this
 (defcustom gap-use-dabbrev t
-  "If true then the complete command will simply call dabbrev instead
-of communicating with a running GAP process."
+  "If non-nil the completion will use dabbrev instead of a running GAP process."
   :group 'gap
   :type 'boolean
   :safe t)
 
 (defcustom gap-debug-indent nil
-  "Show the facts that gap-indent bases its decision on."
+  "If non-nil show the facts that indentation is based on."
   :group 'gap
   :type 'boolean
   :safe t)
 
-;;; Interaction with other modes
+;; Interaction with other modes
 
 ;; Support `imenu' and therefore `which-function-mode'
 (defvar gap-imenu-generic-expression
@@ -311,7 +324,7 @@ of communicating with a running GAP process."
     ;; We will make .. into punctuation later
     (modify-syntax-entry ?.  "_" table)
     table)
-  "Syntax table used while in gap mode.")
+  "Syntax table used for GAP code.")
 
 (defvar gap-font-lock-syntactic-keywords
   '(("\\.\\." 0 ".")              ; Make .. into puctuation
@@ -454,12 +467,13 @@ For format of ths variable see `font-lock-keywords'.")
     map))
 
 ;; TODO: make beginning/end-of-block commands
-(define-derived-mode gap-mode fundamental-mode "GAP"
+;;;###autoload
+(define-derived-mode gap-mode prog-mode "GAP"
   "Major mode for writing GAP programs.  The following keys are defined:
 
 \\{gap-mode-map}
 
-Variables: (with default given)
+Important variables: (with default given)
 
   `gap-indent-step' = (default 4)
         the amount of indentation to add at each level of a group
@@ -530,13 +544,13 @@ end;"
 ;; TODO: make sure xemacs has this
 (make-obsolete 'gap-comment-region 'comment-or-uncomment-region "Sep 4 2010")
 (defun gap-comment-region (arg p1 p2)
-  "Comment region, or with `prefix-arg' uncomment region.
+  "Comment region, or if ARG is non-nil uncomment region.
 There is nothing specific to GAP in this code except that the
 comment marker is set to be #.
 
 See `comment-or-uncomment-region' for a more general version, as
 well as `comment-region' and `uncomment-region' at least in
-GNU/emacs."
+GNU/Emacs."
   (interactive "p\nr")
   (save-excursion
     (save-restriction
@@ -568,9 +582,9 @@ The behavior is determined by the variables
 
 (defun gap-electric-semicolon (arg)
   "Insert a semicolon and run `gap-indent-line'.
-With numeric ARG, just insert that many semicolons.  With
- \\[universal-argument], just insert a single colon.
-If `gap-electric-semicolon' is nil act as `self-insert-command'."
+With numeric ARG, insert that many semicolons.
+With \\[universal-argument], insert a single colon.
+If variable `gap-electric-semicolon' is nil act as `self-insert-command'."
   (interactive "*P")
   (cond ((or arg (not gap-electric-semicolon))
          (self-insert-command (if (not (integerp arg)) 1 arg)))
@@ -587,9 +601,9 @@ If `gap-electric-semicolon' is nil act as `self-insert-command'."
 
 (defun gap-electric-equals (arg)
   "Insert an equals sign or toggle between ':=' and '='.
-With numeric ARG, just insert that many equals signs.  With
- \\[universal-argument], just insert a single equals.
-If `gap-electric-equals' is nil act as `self-insert-command'."
+With numeric ARG, insert that many equals signs.
+With \\[universal-argument], insert a single equals.
+If variable `gap-electric-equals' is nil act as `self-insert-command'."
   (interactive "*P")
   (cond ((or arg (not gap-electric-equals))
          (self-insert-command (if (not (integerp arg)) 1 arg)))
@@ -632,14 +646,14 @@ enabled by `gap-debug-indent'."
 With `prefix-arg' indents this line to column given by argument.
 If line is a comment starting in column 1 then do nothing.
 If point is immediately following a comment character (#) then
-call tab-to-tab-stop, which moves comment up to four characters
+call `tab-to-tab-stop', which moves comment up to four characters
 right (default).  Otherwise indent the line intelligently by
 calling `gap-indent-line'.
 
 The variable `indent-line-function' is `gap-indent-command' by
 default so that `indent-for-tab-command' works intelligently.
 
-Behaviour depends on the gap-mode variables `gap-tab-stop-list',
+Behaviour depends on the `gap-mode' variables `gap-tab-stop-list',
 `gap-indent-comments', and `gap-indent-comments-flushleft', as
 well as those affecting behavior of `gap-indent-line'."
   (interactive)
@@ -703,7 +717,7 @@ each comment line if `gap-auto-indent-comments' is non-nil."
       (exchange-point-and-mark))))
 
 (defun gap-format-buffer ()
-  "Calls `gap-format-region' on entire buffer."
+  "Call `gap-format-region' on entire buffer."
   (interactive)
   (set-mark (point-max))
   (goto-char (point-min))
@@ -711,8 +725,9 @@ each comment line if `gap-auto-indent-comments' is non-nil."
 
 (defun gap-insert-local-variables (&optional arg variables)
   "Insert a local variable statement for the current function.
-With `prefix-arg' temporarily invert the value of
-`gap-regenerate-local-statements'.
+If ARG is non-nil temporarily invert the value of
+`gap-regenerate-local-statements'.  If VARIABLES is non-nil it
+should be a list of all variable names for the local statements.
 
 If `gap-regenerate-local-statements' is non-nil then regenerate
 an existing local statement or insert a new one.
@@ -745,12 +760,12 @@ Formatting of the local statement is determined by
     (unless names
       (save-excursion
         (if (not (gap-find-matching "\\<function\\>" "\\<end\\>" nil t t))
-            (error "no end of function!"))
+            (error "No end of function!"))
         (setq p2 (point))
         (if (not (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t))
-            (error "no beginning of function"))
+            (error "No beginning of function"))
         (if (not (looking-at "function *("))
-            (error "bad beginning of function"))
+            (error "Bad beginning of function"))
         (goto-char (match-end 0))
         (while (looking-at " *\\([a-z][a-z0-9_]*\\),?")
           (setq formal (append formal
@@ -828,9 +843,11 @@ Formatting of the local statement is determined by
           (insert ";\n"))))))
 
 (defun gap-add-local-variable (ident)
-  "Add a local variable to the local statement of the current function.
-Prompts for name with default the identifier at the point. If
-there is no local variable statement yet, signals error."
+  "Add local variable IDENT to the local statement of the current function.
+Interactively prompt for name with default being the identifier
+at point.  If there is no local variable statement yet signal an
+error unless `gap-local-variable-inserts-statement' is non-nil in
+which case it inserts a local variable statement."
   (interactive
    (let ((enable-recursive-minibuffers t)
          (try-word (gap-ident-around-point))
@@ -848,7 +865,7 @@ there is no local variable statement yet, signals error."
       (gap-find-matching "\\<function\\>" "\\<local\\>" "\\<function\\>" t t)
       (if (not (looking-at "local"))
           (if (not gap-local-variable-inserts-statement)
-              (error "No local statement. Add one first.")
+              (error "No local statement.  Add one first")
             (goto-char pos)
             (gap-insert-local-variables nil (list ident)))
         (setq local-start (point))
@@ -857,7 +874,7 @@ there is no local variable statement yet, signals error."
         (if (save-excursion
               (re-search-backward (concat "\\<" ident "\\>")
                                   local-start t))
-            (error "The variable '%s' is already in the local statement." ident)
+            (error "The variable '%s' is already in the local statement" ident)
           (insert ", " ident))))))
 
 (defun gap-insert-debug-print ()
@@ -882,7 +899,8 @@ The statement inserted depends on `gap-insert-debug-name' and
   "Try to complete word at point.
 if `gap-use-dabbrev' is non-nil call `dabbrev-expand' (dynamic
 abbreviation).  Otherwise contact a running gap process to get a
-GAP completion of the word."
+GAP completion of the word.  The value of FULL is passed
+unchanged to `gap-complete' or `dabbrev-expand'."
   (interactive "*")
   (if gap-use-dabbrev
       (dabbrev-expand full)
@@ -890,7 +908,7 @@ GAP completion of the word."
     ))
 
 (defun to-tab-stop ()
-  "Version of tab-to-tab-stop that inserts before point."
+  "Version of `tab-to-tab-stop' that inserts before point."
   (interactive)
   (if abbrev-mode (expand-abbrev))
   (let ((tabs tab-stop-list))
@@ -902,12 +920,12 @@ GAP completion of the word."
       (insert ? ))))
 
 (defun gap-match-group ()
-  "Find matching delimiter in GAP
-If point is on a character with bracket syntax, then use built in
-lisp function forward-list to find matching bracket.  Otherwise,
-check to see if point is on the first character of 'do', 'od',
-'if', 'elif', 'else', 'fi', 'function', 'end'.  If it is, jump to
-the matching delimiter."
+  "Find matching delimiter in GAP.
+If point is on a character with bracket syntax, then use
+`forward-list' to find matching bracket.  Otherwise, check to see
+if point is on the first character of 'while', 'for', 'repeat',
+'until', 'do', 'od', 'if', 'elif', 'else', 'fi', 'function', or
+'end'.  If it is, jump to the matching delimiter."
   (interactive)
   (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1) t)
         ((looking-at "\\s\)") (forward-char 1) (backward-list 1) t)
@@ -945,11 +963,12 @@ the matching delimiter."
         (t nil)))
 
 (defun gap-percent-command (arg)
-  "This Gap-mode function is for people who are used to the % command in vi.
-Binding this function to the '%' key in Gap-mode will: match whatever beginning
-or end of a group that the point is on, otherwise just insert a % symbol."
+  "Emulate the % command from vi.
+Binding this function to the '%' key in Gap-mode will:
+Match whatever beginning or end of a group that the point is on or
+Insert a % symbol if not on a match or with `prefix-argument'."
   (interactive "p")
-  (if (not (gap-match-group))
+  (if (or arg (not (gap-match-group)))
       (self-insert-command (or arg 1))))
 
 ;; This seems really innefficient and inelegent, but it's fast enough
@@ -977,9 +996,11 @@ or end of a group that the point is on, otherwise just insert a % symbol."
       (goto-char p)
       (forward-char 4)))
   ;; We should be just after the "end;" statement, but if we started
-  ;; there, then we are where we already want to be
+  ;; just before the "end" then we are where we already want to be.
+  ;; TODO: I need to make this handle end without a semicolon as well.
+  ;; Hmmm.
   (when (and (>= (- (point) (point-min)) 4)
-             (not (looking-at "end;")))
+             (not (looking-at "end")))
     (backward-char 4))
   ;; We are at end of function
   ;; Handle moving forward
@@ -1013,6 +1034,7 @@ or end of a group that the point is on, otherwise just insert a % symbol."
 
 ;; TODO: Need to make this scroll and keep the input
 ;; TODO: may need to add a final return
+;; TODO: should use `gap-pending-input' etc.
 ;; comint-postoutput-scroll-to-bottom
 (defun gap-eval-region (begin end)
   "Send region to GAP interpreter.
@@ -1027,7 +1049,7 @@ depending on the value of `gap-auto-start-gap'."
     (comint-send-region process begin end)))
 
 (defun gap-eval-string (buf-str)
-  "Send region to GAP interpreter.
+  "Send string BUF-STR to GAP interpreter.
 If GAP is not running it will signal an error or start it
 depending on the value of `gap-auto-start-gap'."
   (ensure-gap-running nil)
@@ -1047,14 +1069,15 @@ See `gap-eval-region'."
   (gap-eval-region (point-min) (point-max)))
 
 (defun gap-eval-file (file)
-  "Send a Read statement to GAP interpreter to read a file.
+  "Send a Read(\"FILE\") statement to GAP interpreter to read a file.
 Interactively, it prompts to save current buffer if it belongs to a file.
 
- Compare with gap-eval-buffer which "
+Compare with `gap-eval-buffer' which sends the contents of the
+current buffer."
   (interactive
    ;; If interactive, ask to save buffer (not required), and then send file
    (progn (and (buffer-modified-p (current-buffer))
-               (y-or-n-p "Save current buffer?")
+               (y-or-n-p "Save current buffer? ")
                (save-buffer))
           (list (buffer-file-name))))
 
@@ -1119,7 +1142,7 @@ See `gap-eval-region'."
 
 (defvar gap-continued-special-list
   (list
-   ;; '( REGEXP  N  OFFSET  TERMINATE)
+   ;; '
    '("#!#" nil 0 t)
    '("\\<local\\>[ \t\n]*\\([^ \t\n]\\)" 1 0 nil)
    '("\\<return\\>[ \t\n]*\\([^ \t\n]\\)" 1 0 t)
@@ -1127,14 +1150,22 @@ See `gap-eval-region'."
    '(":=[ \t\n]*\\([^ \t\n]\\)" 1 0 nil)
    '("\\<if\\>[ \t\n]*\\([^ \t\n]\\)" 1 0 nil)
    '("\\<until[ \t\n]*\\([^ \t\n]\\)" 1 0 nil))
-  "
-Determines special continued lines and indentation for them.
-For each element of this list: search forward (from start of line initially
-and from last match otherwise) for REGEXP entry. If second entry is nil, jump
-back to the indentation, otherwise if a number N jump to the beginning of
-the Nth group of the regexp. Take current indentation and add the third
-OFFSET entry).  Take the maximum of values so obtained for each element.
-If TERMINATE is t, then don't check any later ones if matched.")
+  "Determines special continued lines and indentation for them.
+Each entry of the list is of the form (REGEXP N OFFSET TERMINATE)
+
+For each element of this list an indentation level is calculated
+and the maximum is used as the new indentation level.
+
+The value of REGEXP is used to search forward (from start of line
+initially and from last match otherwise).
+
+If N is nil, jump back to the indentation, otherwise jump to the
+beginning of the Nth group of the regexp.
+
+The value of OFFSET is added to the current indentation and this
+new value is the one considered.
+
+If TERMINATE is non-nil don't check any further entries.")
 
 (defun gap-ident-around-point ()
   "Return the identifier around the point as a string."
@@ -1150,7 +1181,7 @@ If TERMINATE is t, then don't check any later ones if matched.")
         (buffer-substring beg (point))))))
 
 (defun gap-point-in-comment-string ()
-  "Returns non-nil if point is inside a comment or string."
+  "Return non-nil if point is inside a comment or string."
   (save-excursion
     (let* ((p (point))
            (line (buffer-substring (beg-of-line-from-point) p)))
@@ -1158,7 +1189,7 @@ If TERMINATE is t, then don't check any later ones if matched.")
                     (gap-strip-line-of-strings line)))))
 
 (defun gap-point-in-comment ()
-  "Returns non-nil if point is inside a comment."
+  "Return non-nil if point is inside a comment."
   (save-excursion
     (let* ((p (point))
            (line (buffer-substring (beg-of-line-from-point) p)))
@@ -1166,7 +1197,7 @@ If TERMINATE is t, then don't check any later ones if matched.")
 
 
 (defun gap-strip-line-of-strings (line)
-  "Removes GAP strings from LINE."
+  "Remove GAP strings from LINE."
   ;; When stripping strings we change "aaa\"bbb" into "bbb" thus
   ;; allowing us to deal with strings with embedded double quotes
   ;; which otherwise caused problems.
@@ -1192,7 +1223,7 @@ If TERMINATE is t, then don't check any later ones if matched.")
   line)
 
 (defun gap-strip-line-of-brackets (line)
-  "Removes set of brackets from LINE.
+  "Remove set of brackets from LINE.
 Currently not used."
   (while (or (string-match "([^()]*)" line)
              (string-match "\\[[^\\[\\]]*\\]" line)
@@ -1202,20 +1233,23 @@ Currently not used."
   line)
 
 (defun gap-strip-line-of-comments (line)
-  "Removes GAP comments from LINE."
+  "Remove GAP comments from LINE.
+It assumes that there are no GAP strings in LINE."
   (while (string-match "#.*[\n\C-m]" line)
     (setq line (concat (substring line 0 (match-beginning 0))
                        (substring line (match-end 0)))))
   line)
 
 (defun gap-strip-strings-comments (stmt)
-  "Remove GAP strings and comments from the statement.
+  "Remove GAP strings and comments from STMT.
 See `gap-strip-line-of-comments' and `gap-strip-line-of-strings'."
   (gap-strip-line-of-comments
    (gap-strip-line-of-strings stmt)))
 
 (defun gap-skip-forward-to-token (limit ret)
-  "Skip forward from point to first character that is not in a comment."
+  "Skip forward from point to first character that is not in a comment.
+Will not search past LIMIT.  If RET is non-nil then do not signal
+an error if no match is found."
   (while (and (if (not (re-search-forward "[^ \t\n\C-m]" limit ret))
                   nil
                 (goto-char (match-beginning 0))
@@ -1225,7 +1259,8 @@ See `gap-strip-line-of-comments' and `gap-strip-line-of-strings'."
                 nil))))
 
 (defun end-of-line-from-point (&optional p)
-  "Return point at end of current line."
+  "Return point at end of current line.
+If P is non-nil then return end of line at that buffer position."
   (save-excursion
     (if p (goto-char p))
     (gap-end-of-line)
@@ -1233,35 +1268,37 @@ See `gap-strip-line-of-comments' and `gap-strip-line-of-strings'."
     (point)))
 
 (defun beg-of-line-from-point (&optional p)
-  "Return at beginning of current line."
+  "Return at beginning of current line.
+If P is non-nil then return end of line at that buffer position."
   (save-excursion
     (if p (goto-char p))
     (gap-beginning-of-line)
     (point)))
 
+;; TODO: see if I really need these anymore.  How do I turn on selective display??
 (defun gap-beginning-of-line ()
   "Go to the beginning of the current line.
-Accounts for selective display (^m)."
+Accounts for selective display (^M)."
   (if (re-search-backward "[\n\C-m]" nil 1)
       (forward-char 1)))
 
 (defun gap-end-of-line ()
   "Go to the end of the current line.
-Accounts for selective display (^m)."
+Accounts for selective display (^M)."
   (if (re-search-forward "[\n\C-m]" nil 1)
       (forward-char -1)))
 
 (defun lines-indentation (&optional p)
   "Return number of characters of indentation on the current line.
-With `prefix-arg', return information for the line as if point
-were at that buffer position. "
+When P is non-nil return information for the line as if point
+were at that buffer position."
   (save-excursion
     (if p (goto-char p))
     (+ (- (progn (gap-beginning-of-line) (point)))
        (progn (skip-chars-forward " \t") (point)))))
 
 (defun gap-looking-at (s)
-  "Like looking-at, but accounts for selective display (^m)."
+  "Like `looking-at', but accounts for selective display (^M)."
   (save-excursion
     (if (eq (substring s 0 1) "^")
         (progn
@@ -1271,13 +1308,13 @@ were at that buffer position. "
 
 (defun gap-back-to-indentation ()
   "Go to first before the non indentation character.
-Accounts for selective display."
+Accounts for selective display (^M)."
   (gap-beginning-of-line)
   (skip-chars-forward " \t"))
 
 ;;! Fix member function?!
 (defun memberequal (x y)
-  "Like memq, but uses `equal' for comparison.
+  "Like `memq', but uses `equal' for comparison.
 This is a subr in Emacs 19."
   (while (and y (not (equal x (car y))))
     (setq y (cdr y)))
@@ -1418,7 +1455,7 @@ This is a subr in Emacs 19."
 
 
 (defun gap-calc-continued-stmt (this-stmt this-beg this-end pos)
-  "Calculate indentation for a statement which has been continued from the previous line."
+  "Calculate indentation for a statement which is continued from the previous line."
   ;; now check to see if we have a continued line or not
   (save-excursion
     (goto-char this-beg)
@@ -1504,9 +1541,11 @@ This is a subr in Emacs 19."
 
 
 (defun gap-calc-brackets (this-beg pos)
-  "Check to see if there is unfinished bracket list and if there is,
-return a pair (ind . base) for indentation due to bracketing, and the
-base indentation of the line starting the bracket grouping"
+  "Return information about indentation due to unclosed brackets.
+Return nil if there is no unfinished bracket list.  Otherwise
+return a pair (IND . BASE). The value of IND is the amount of
+indentation due to bracketing, and BASE is the indentation of the
+line where bracket grouping started."
   (goto-char pos)
   (let ((brack-level -1) ind-brack base-brack)
     (while (and (< brack-level 0)
@@ -1528,14 +1567,17 @@ base indentation of the line starting the bracket grouping"
       (cons ind-brack base-brack))))
 
 (defun gap-searcher (search-func object &optional bound silent move)
-  "Use function SEARCH-FUNC to search for OBJECT.  Also passes BOUND for
-specifying the character position bounding the search, SILENT to tell
-search routines that they should not signal errors.
-  The result is a search that skips matches that occur in comments or
-strings in the GAP code.
-  If MOVE is non-nil the move to the buffer position returned by evaling
-MOVE after each search. This is for moving to the beginning or end of
-groups in the regexp. eg use '(match-beginning 0)."
+  "Use function SEARCH-FUNC to search for OBJECT.
+Also passes BOUND for specifying the character position bounding
+the search and SILENT to tell search routines that they should
+not signal errors.
+
+If MOVE is non-nil move point to the buffer position returned by
+evaluating MOVE after each search.  This is for moving to the
+beginning or end of groups in the regexp, e.g. use
+'(match-beginning 0).
+
+The search skips matches occurring in comments or strings."
   (let ((done nil)
         return pos)
     (while (not done)
@@ -1557,7 +1599,7 @@ groups in the regexp. eg use '(match-beginning 0)."
     return))
 
 (defun gap-find-matching (breg ereg &optional also forw noerr)
-  "Search forward to find EREG or backward to find BREG.
+  "Search backward to find BREG or forward to find EREG.
 
 Skips over BREG/EREG pairs.  For example, this allows searching
 for the end of the current function definition while ignoring any
@@ -1615,8 +1657,10 @@ found, simply return nil."
 
 (defun gap-search-back-end-stmt (limit ret goto)
   "Search backward from point for the end of a GAP statement.
-If GOTO is the symbol end, then goto the end of the statement,
-else to the beginning of the end."
+Will not go farther than LIMIT.  If RET is non-nil then move
+point to LIMIT if no match is found.  If GOTO is the symbol end,
+then goto the end of the statement, else to the beginning of the
+end statement."
   (if (not (gap-searcher 're-search-backward ; searcher to use.
                          gap-end-of-statement ; regular expression.
                          limit      ; bound for search.
@@ -1635,14 +1679,11 @@ else to the beginning of the end."
     t))
 
 (defun gap-search-forward-end-stmt (limit ret goto)
-  "This function searches forward from point for the end of a GAP
-statement, making sure to skip over comments and strings.
-
-If `RET' then move to `LIMIT' if match fails.
-
-If `GOTO' is 'end then goto the end of the matched statement,
-otherwise goto beginning."
-
+  "Search backward from point for the end of a GAP statement.
+Will not go farther than LIMIT.  If RET is non-nil then move
+point to LIMIT if no match is found.  If GOTO is the symbol end,
+then goto the end of the statement, else to the beginning of the
+end statement."
   (if (not (gap-searcher 're-search-forward   ; searcher to use.
                          gap-end-of-statement ; regular expression.
                          limit      ; bound for search.
@@ -1663,3 +1704,5 @@ otherwise goto beginning."
 ;;}}}
 
 (provide 'gap-mode)
+
+;;; gap-mode.el ends here
