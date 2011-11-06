@@ -385,11 +385,10 @@ a *Completions* buffer."
           (insert-rectangle rect)))
       ;; Buttonize
       (goto-char (point-min))
-      (while (re-search-forward (concat "\\<" gap-completion-ident "\\sw+") nil t)
+      (while (re-search-forward (concat "\\_<" gap-completion-ident "\\(?:\\s_\\|\\sw\\)+") nil t)
         (let ((fun `(lambda (button)
                       (quit-window)
                       (set-buffer gap-completing-buffer)
-                      (goto-char (point-max))
                       (if (not (looking-back ,gap-completion-ident))
                           (error "Not completing")
                         (delete-backward-char ,(length gap-completion-ident))
@@ -400,7 +399,6 @@ a *Completions* buffer."
                                 'category 'default-button
                                 'face 'default
                                 'mouse-face 'highlight
-                                ;; 'category (button-category-symbol 'gap-syntax-error)
                                 'action fun
                                 'mouse-action fun))))
       ;; Return to normal output
