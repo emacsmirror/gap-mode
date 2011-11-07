@@ -140,6 +140,8 @@ Otherwise signals an error."
   (define-key gap-process-map "\C-m" 'gap-send)
   (define-key gap-process-map "\t" 'gap-complete)
   (define-key gap-process-map "?" 'gap-help)
+  (define-key gap-process-map "=" 'gap-electric-equals)
+  (define-key gap-process-map "%" 'gap-electric-percent)
   (define-key gap-process-map "\C-l" 'comint-previous-matching-input-from-input)
   (define-key gap-process-map "\C-c\C-l" 'recenter)
   (define-key gap-process-map "\C-c\C-c" 'comint-interrupt-subjob)
