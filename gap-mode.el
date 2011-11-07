@@ -195,6 +195,18 @@ equals behaves normally."
   :type 'boolean
   :safe t)
 
+(defcustom gap-electric-percent nil
+  "Whether the % key should emulate the % key in vi.
+
+If nil then % acts as `self-insert-command'.
+
+If non-nil pressing % will jump between beginning and end of
+groups.  With `prefix-arg' or if point is not at the end of a
+group pressing % will act as `self-insert-command'."
+  :group 'gap
+  :type 'boolean
+  :safe t)
+
 ;; TODO: should update this to use filladapt which is more common I think
 ;; TODO: this probably shouldn't be a defcustom, but I don't know enough about `gin-mode'
 ;; I think if it's not used anymore, then I'll just rip it out.
@@ -395,6 +407,7 @@ For format of ths variable see `font-lock-keywords'.")
     ;; Indenting, formatting
     (define-key map ";"       'gap-electric-semicolon)
     (define-key map "="       'gap-electric-equals)
+    (define-key map "%"       'gap-electric-percent)
     (define-key map [return]  'gap-newline-command)
     (define-key map "\M-q"    'gap-format-region)
     (define-key map "\M-\C-q" 'gap-format-buffer)
@@ -622,6 +635,22 @@ If variable `gap-electric-equals' is nil act as `self-insert-command'."
         (t
          (self-insert-command 1))))
 
+(defun gap-electric-percent (arg)
+  "Emulate the % command from vi.
+If point is at the beginning or end of a group jump to the other
+end.  If not at one end of a group or if ARG or the variable
+`gap-electric-percent' are non-nil then it acts as
+`self-insert-command'"
+  (interactive "P")
+  (when (or arg
+            (not gap-electric-percent)
+            (not (gap-match-group)))
+    (self-insert-command (if (wholenump (prefix-numeric-value arg))
+                             (prefix-numeric-value arg)
+                           1))))
+(defalias 'gap-percent-command 'gap-electric-percent)
+(make-obsolete 'gap-percent-command 'gap-electric-percent "Nov 7 2011")
+
 (defun gap-indent-line ()
   "Indent current line intelligently according to GAP semantics.
 Affected by the variables `gap-indent-step',
@@ -790,7 +819,7 @@ Formatting of the local statement is determined by
                 ((looking-at "\\(^\\|;\\) *for +\\([a-z][a-z0-9_]*\\) +in\\>")
                  (setq name (buffer-substring (match-beginning 2) (match-end 2)))
                  (goto-char (match-end 0)))
-                (t (error "gap-insert-local-variables incorrect code!")))
+                (t (error "Programming error in gap-insert-local-variables!")))
           (if (not (memberequal name names))
               (setq names (append names (list name)))))))
     (save-excursion
@@ -961,15 +990,6 @@ if point is on the first character of 'while', 'for', 'repeat',
                 (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1))
                (t nil)))
         (t nil)))
-
-(defun gap-percent-command (arg)
-  "Emulate the % command from vi.
-Binding this function to the '%' key in Gap-mode will:
-Match whatever beginning or end of a group that the point is on or
-Insert a % symbol if not on a match or with `prefix-argument'."
-  (interactive "p")
-  (if (or arg (not (gap-match-group)))
-      (self-insert-command (or arg 1))))
 
 ;; This seems really innefficient and inelegent, but it's fast enough
 ;; OMM, so I'm going to stick with it for now
