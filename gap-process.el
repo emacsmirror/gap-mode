@@ -323,9 +323,9 @@ sending spaces to continue the output until finished."
   (let ((cbuf (current-buffer)))
     (set-buffer "*Help*")
     (setq buffer-read-only nil)                                     ;; GEZ: so we can put help info into the buffer
+    (set (make-local-variable 'show-trailing-whitespace) nil)
     (goto-char (point-max))
     (insert string)
-    (ansi-color-filter-region (point-min) (point-max))
     (beginning-of-line)
     (if (re-search-forward
          "  -- <space> page, <n> next line, <b> back, <p> back line, <q> quit --"
@@ -333,12 +333,14 @@ sending spaces to continue the output until finished."
          )                    ;;GEZ: Add to handle GAP 4.4.x output
         (progn
           (delete-region (match-beginning 0) (point))
+          (ansi-color-apply-on-region (point-min) (point-max))
           (comint-send-string proc " ")))                           ;;NOTE: tell GAP to continue with next page
 
                                         ;(if (looking-at gap-prompt-regexp)                             ;;GEZ: original
     (if (looking-at (concat gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
         (progn
           (delete-region (point) (point-max))
+          (ansi-color-apply-on-region (point-min) (point-max))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; NOTE: this section is only needed for NTEmacs
           (goto-char (point-min))
@@ -351,6 +353,7 @@ sending spaces to continue the output until finished."
           (while (re-search-forward
                   "^\\( *\^H\\)\\|\\(\C-m\\)" nil t)              ;;GEZ: get rid of ^H ^H and ^M
             (replace-match ""))
+
           ;; turn numbers into buttons so that we can click on them as well
           (goto-char (point-min))
           (while (re-search-forward
