@@ -303,16 +303,19 @@ possible output states GAP is in:
               (set-marker (process-mark proc) (point))))))
      ((eq gap-send-state 'completing)
       (let ((x (string-match "\C-g" string)))
-        (if (not (looking-back gap-completion-ident))
-            (error "Got confused during completion")
-          (if x  ;; GAP beeped on completing: now ask for all completions
-              (progn
-                (if gap-process-beep (beep))
-                (gap-complete t)
-                (setq gap-send-state 'normal))
-            ;; Insert the completed symbol
-            (delete-char (- (length gap-completion-ident)))
-            (insert (string-strip-chars string " \C-h\C-g\C-m")))))))
+        (if x  ;; GAP beeped on completing: now ask for all completions
+            (progn
+              (if gap-process-beep (beep))
+              (gap-complete t)
+              (setq gap-send-state 'normal))
+          ;; We seem to at least get the identifier back all at once,
+          ;; sometimes more.
+          (when (not (looking-back gap-completion-ident))
+            (error "Got confused during completion"))
+          (when (string-match gap-completion-ident string)
+            (delete-char (- (length gap-completion-ident))))
+          ;; Insert the completed symbol
+          (insert (string-strip-chars string " \C-h\C-g\C-m"))))))
     (set-buffer cbuf)))
 
 ;; TODO: problem with Combinations
@@ -441,6 +444,7 @@ With FULL, send two TABs to GAP to get a full list of completions."
           (setq gap-send-state 'completing)
           (process-send-string process (concat gap-completion-ident
                                                "\t\C-x")))
+
       (setq gap-send-state 'normal)
       (unwind-protect
           (progn
