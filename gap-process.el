@@ -330,45 +330,60 @@ sending spaces to continue the output until finished."
     (goto-char (point-max))
     (insert string)
     (beginning-of-line)
-    (if (re-search-forward
-         "  -- <space> page, <n> next line, <b> back, <p> back line, <q> quit --"
-         nil t
-         )                    ;;GEZ: Add to handle GAP 4.4.x output
-        (progn
-          (delete-region (match-beginning 0) (point))
-          (ansi-color-apply-on-region (point-min) (point-max))
-          (comint-send-string proc " ")))                           ;;NOTE: tell GAP to continue with next page
+    (when (re-search-forward
+           "  -- <space> page, <n> next line, <b> back, <p> back line, <q> quit --"
+           nil t)                    ;;GEZ: Add to handle GAP 4.4.x output
+      (delete-region (match-beginning 0) (point))
+      (ansi-color-apply-on-region (point-min) (point-max))
+      (comint-send-string proc " "))                           ;;NOTE: tell GAP to continue with next page
 
                                         ;(if (looking-at gap-prompt-regexp)                             ;;GEZ: original
-    (if (looking-at (concat gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
-        (progn
-          (delete-region (point) (point-max))
-          (ansi-color-apply-on-region (point-min) (point-max))
+    (when (looking-at (concat gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
+      (delete-region (point) (point-max))
+      (ansi-color-apply-on-region (point-min) (point-max))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; NOTE: this section is only needed for NTEmacs
-          (goto-char (point-min))
-          (while (re-search-forward
-                  "gap: 'ioctl' could not turn off raw mode!\n" nil t)
-            (replace-match ""))
+      (goto-char (point-min))
+      (while (re-search-forward
+              "gap: 'ioctl' could not turn off raw mode!\n" nil t)
+        (replace-match ""))
 ;;; NOTE: end NTEmacs specific code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-          (goto-char (point-min))
-          (while (re-search-forward
-                  "^\\( *\^H\\)\\|\\(\C-m\\)" nil t)              ;;GEZ: get rid of ^H ^H and ^M
-            (replace-match ""))
+      (goto-char (point-min))
+      (while (re-search-forward
+              "^\\( *\^H\\)\\|\\(\C-m\\)" nil t)              ;;GEZ: get rid of ^H ^H and ^M
+        (replace-match ""))
 
-          ;; turn numbers into buttons so that we can click on them as well
-          (goto-char (point-min))
-          (while (re-search-forward
-                  "^\\[\\([0-9]+\\)\\].*" nil t)
-            (add-text-properties (match-beginning 0) (match-end 0)
-                                 `(button t
-                                   category default-button
-                                   action (lambda (button)
-                                            (gap-help ,(match-string-no-properties 1) nil))
-                                   mouse-action (lambda (button)
-                                                  (gap-help ,(match-string-no-properties 1) nil)))))
-          (set-process-filter proc 'gap-output-filter)))
+      ;; Turn choice numbers into buttons to click on them.
+      ;; Make sure they are obviously clickable.
+      (goto-char (point-min))
+      (while (re-search-forward
+              "^\\[\\([0-9]+\\)\\].*" nil t)
+        (add-text-properties (match-beginning 0) (match-end 0)
+                             `(button t
+                                      category default-button
+                                      action (lambda (button)
+                                               (gap-help ,(match-string-no-properties 1) nil))
+                                      mouse-action (lambda (button)
+                                                     (gap-help ,(match-string-no-properties 1) nil)))))
+
+      ;; Cross references -- not obviously clickable so they don't distract
+      (goto-char (point-min))
+      (while (re-search-forward
+              "\\(?:\\([A-Z]\\w+\\)\\s +\\)?(\\(?:see\\s +\\)?\\([0-9.-]+\\))" nil t)
+        (let ((help-section (if (match-beginning 1)
+                                (match-string-no-properties 1)
+                              (match-string-no-properties 2))))
+          (add-text-properties (match-beginning 0) (match-end 0)
+                               `(button t
+                                        category default-button
+                                        face default
+                                        mouse-face highlight
+                                        action (lambda (button)
+                                                 (gap-help ,help-section nil))
+                                        mouse-action (lambda (button)
+                                                       (gap-help ,help-section nil))))))
+      (set-process-filter proc 'gap-output-filter))
     (set-buffer cbuf)))
 
 (defun gap-completions-filter (proc string)
