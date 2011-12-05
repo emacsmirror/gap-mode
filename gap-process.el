@@ -570,9 +570,11 @@ If the process buffer is visible, try to keep the end on screen."
   (let ((start 0))
     (while (string-match "^Syntax error: .* in \\(.*\\) line \\([0-9]+\\)$" string start)
       (let ((fun `(lambda (button)
-                    (find-file ,(match-string-no-properties 1 string))
-                    (goto-char (point-min))
-                    (forward-line ,(string-to-number (match-string-no-properties 2 string))))))
+                    (find-file-other-window ,(match-string-no-properties 1 string))
+                    (save-restriction
+                      (widen)
+                      (goto-char (point-min))
+                      (forward-line ,(string-to-number (match-string-no-properties 2 string)))))))
         (add-text-properties (match-beginning 0) (match-end 0)
                              (list
                               'button t
