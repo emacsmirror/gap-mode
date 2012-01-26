@@ -605,8 +605,8 @@ If variable `gap-electric-semicolon' is nil act as `self-insert-command'."
               (<= (current-column)
                  (save-excursion (back-to-indentation) (current-column))))
          (save-excursion
-           (forward-line -1)
-           (end-of-line)
+           ;; skip backwards past whitespace and end comments (newlines)
+           (skip-syntax-backward " >")
            (self-insert-command 1)))
         (t
          (self-insert-command 1)
