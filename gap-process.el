@@ -383,6 +383,7 @@ sending spaces to continue the output until finished."
                                                  (gap-help ,help-section nil))
                                         mouse-action (lambda (button)
                                                        (gap-help ,help-section nil))))))
+      (goto-char (point-min))
       (set-process-filter proc 'gap-output-filter))
     (set-buffer cbuf)))
 
@@ -565,6 +566,7 @@ If the process buffer is visible, try to keep the end on screen."
   'help-echo "mouse-2, RET: visit this syntax error"
   )
 
+;; TODO: fix the case when half the syntax error comes in at different times
 (defun buttonize-syntax-error (string)
   "Propertize STRING so that syntax error messages are clickable."
   (let ((start 0))
