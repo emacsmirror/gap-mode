@@ -207,7 +207,7 @@ buffer to the GAP session as initial standard input."
           (comint-send-string proc "\n")))
     (switch-to-buffer gap-process-buffer)))
 
-(defun gap-process-mode ()
+(define-derived-mode gap-process-mode comint-mode "Gap"
   "Major mode for interacting with GAP.
 \\<gap-process-map>Provides support for completion (via \\[gap-complete]) and GAP's help
 system.  Invoking \\[gap-help] will provide help on the current
@@ -217,13 +217,12 @@ Since `gap-process-mode' inherits from `comint-mode' it's
 features are also relevant.  As a convenience for GAP users
 \\[comint-previous-matching-input-from-input] has been bound to `comint-previous-matching-input-from-input'
 which is much like GAP's C-l (\\[recenter] can be used to recenter)."
-  (interactive)
-  (comint-mode)
   (set (make-local-variable 'comint-prompt-regexp) gap-prompt-regexp)
   (set (make-local-variable 'comint-use-prompt-regexp) t)
   (set (make-local-variable 'comint-eol-on-send) t)
-  (setq major-mode 'gap-process-mode)
-  (setq mode-name "Gap")
+
+  (set (make-local-variable 'paragraph-separate) "\\'")
+  (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
   (require 'gap-mode) ;; for gap-syntax-table and gap-font-lock-keywords
   (set-syntax-table gap-syntax-table)
   (set (make-local-variable 'font-lock-defaults) '(gap-font-lock-keywords))
