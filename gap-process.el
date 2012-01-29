@@ -205,7 +205,7 @@ buffer to the GAP session as initial standard input."
           (setq proc (get-buffer-process gap-process-buffer))
           (set-process-filter proc 'gap-startfile-filter)
           (comint-send-string proc "\n")))
-    (switch-to-buffer gap-process-buffer)))
+    (pop-to-buffer gap-process-buffer)))
 
 (define-derived-mode gap-process-mode comint-mode "Gap"
   "Major mode for interacting with GAP.
@@ -521,11 +521,11 @@ containing initial standard input to process."
     (cond ((not (comint-check-proc buffname))
            (let ((buff (get-buffer-create buffname)))
              (set-buffer buff)
-             (switch-to-buffer buff)
+             (display-buffer buff)
              (if dir (cd dir))
              (apply 'make-comint name progm startfile args)))
           (t
-           (switch-to-buffer buffname)
+           (display-buffer buffname)
            (get-buffer buffname)))))
 
 (defun string-strip-chars (string strip)
