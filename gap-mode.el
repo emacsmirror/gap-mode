@@ -1063,10 +1063,14 @@ depending on the value of `gap-auto-start-gap'."
   (interactive "r")
   (ensure-gap-running nil)
   (let ((process (get-buffer-process gap-process-buffer)))
-    (setq gap-send-state 'echo)
-    ;; (setq gap-send-state 'normal)
+    (setq gap-send-state 'normal)
     (set-process-filter process 'gap-output-filter)
-    (comint-send-region process begin end)))
+    (display-buffer (process-buffer process))
+    (with-current-buffer gap-process-buffer
+      (goto-char (process-mark process)))
+    (comint-send-region process begin end)
+    (when (not (string= "\n" (buffer-substring-no-properties (- end 1) end)))
+      (comint-send-string process "\n"))))
 
 (defun gap-eval-string (buf-str)
   "Send string BUF-STR to GAP interpreter.
@@ -1074,9 +1078,11 @@ If GAP is not running it will signal an error or start it
 depending on the value of `gap-auto-start-gap'."
   (ensure-gap-running nil)
   (let ((process (get-buffer-process gap-process-buffer)))
-    ;; (setq gap-send-state 'echo) ;; This only hides the first line...
     (setq gap-send-state 'normal)
     (set-process-filter process 'gap-output-filter)
+    (display-buffer (process-buffer process))
+    (with-current-buffer gap-process-buffer
+      (goto-char (process-mark process)))
     (comint-send-string process
                          (if (string-match "\n\\'" buf-str)
                              buf-str
@@ -1100,7 +1106,6 @@ current buffer."
                (y-or-n-p "Save current buffer? ")
                (save-buffer))
           (list (buffer-file-name))))
-
   (gap-eval-string (concat "Read(\"" file "\");")))
 
 (defun gap-eval-defun ()
