@@ -146,8 +146,8 @@ If nil then use calculated indentation level only."
   :group 'gap
   :type '(choice (const :tag "Cursor on the # character" 0)
                  (const :tag "Cursor 1 character to the right of #" 1)
-                 (other :tag "Cursor to the right of the # character" t)
-                 (const :tag "Calculated indentation only" nil))
+                 (const :tag "Calculated indentation only" nil)
+                 (other :tag "Cursor to the right of the # character" t))
   :safe t)
 
 (defcustom gap-indent-comments-flushleft nil
@@ -294,6 +294,17 @@ A %s is substituted with the name of the current function."
   "If non-nil the completion will use dabbrev instead of a running GAP process."
   :group 'gap
   :type 'boolean
+  :safe t)
+
+(defcustom gap-eval-file-should-save 'query
+  "Determines whether evaluating a file with GAP should save first.
+If nil, `gap-eval-file' will never save the file.  If equal to
+the symbol query then prompt the user to save when required.  Any
+other value will cause the file to be saved automatically."
+  :group 'gap
+  :type '(choice (const :tag "Never" nil)
+                 (const :tag "Ask" query)
+                 (other :tag "Always" t))
   :safe t)
 
 (defcustom gap-debug-indent nil
@@ -1096,14 +1107,17 @@ See `gap-eval-region'."
 
 (defun gap-eval-file (file)
   "Send a Read(\"FILE\") statement to GAP interpreter to read a file.
-Interactively, it prompts to save current buffer if it belongs to a file.
+Interactively, it optionally saves current buffer based on the
+value of `gap-eval-file-should-save'.
 
 Compare with `gap-eval-buffer' which sends the contents of the
 current buffer."
   (interactive
    ;; If interactive, ask to save buffer (not required), and then send file
    (progn (and (buffer-modified-p (current-buffer))
-               (y-or-n-p "Save current buffer? ")
+               gap-eval-file-should-save
+               (or (not (eq gap-eval-file-should-save 'query))
+                   (y-or-n-p "Save current buffer? "))
                (save-buffer))
           (list (buffer-file-name))))
   (gap-eval-string (concat "Read(\"" file "\");")))
