@@ -120,6 +120,28 @@ should complete  installation!  You should  then evaluate (e.g.  via `M-:`)
 `(customize-group 'gap)` and read and change whatever settings you like.
 
 
+If you like to see the help inside emacs, but use other settings
+inside a terminal then you can add the following to your ~/.gaprc
+
+    # Versions 4.4 and 4.5 use different formats for environment variables
+    if (IsRecord(GAPInfo.SystemEnvironment) and
+        IsBound(GAPInfo.SystemEnvironment.INSIDE_EMACS )) or
+       (not IsRecord(GAPInfo.SystemEnvironment) and
+        Filtered(GAPInfo.SystemEnvironment,
+                x->Length(x) > 13 and x{[1..13]} = "INSIDE_EMACS=")) then
+
+        # Emacs colors the prompt anyway
+        ColorPrompt( false );
+        # See help in emacs
+        SetHelpViewer("screen");
+        # Print all the help without paging -- faster and more robust
+        PAGER := "tail";
+        PAGER_OPTIONS := [ "-n" ];
+
+    else
+        # Whatever pager etc. you like in a terminal
+    fi;
+
 ======================================================================
 Originally written by
 
