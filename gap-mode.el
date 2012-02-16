@@ -1141,6 +1141,7 @@ See `gap-eval-region'."
                        (gap-skip-forward-to-token nil 1)
                        (point)))
            (end (progn (gap-search-forward-end-stmt nil 1 'end)
+                       (skip-chars-forward ";")
                        (point))))
       (gap-eval-region beg end))))
 
