@@ -807,18 +807,18 @@ Formatting of the local statement is determined by
         (if (not (looking-at "function *("))
             (error "Bad beginning of function"))
         (goto-char (match-end 0))
-        (while (looking-at " *\\([a-z][a-z0-9_]*\\),?")
+        (while (looking-at " *\\(\\(:?\\sw\\|\\s_\\)+\\),?")
           (setq formal (append formal
                                (list (buffer-substring
                                       (match-beginning 1) (match-end 1)))))
           (goto-char (match-end 0)))
         (while (gap-searcher 're-search-forward
                              (concat
-                              "\\(" "\\(^\\|;\\) *\\([a-z][a-z0-9_]*\\) *:= *"
-                              "\\|" "\\(^\\|;\\) *for +\\([a-z][a-z0-9_]*\\)"
+                              "\\(" "\\(^\\|;\\) *\\(\\(:?\\sw\\|\\s_\\)+\\) *:= *"
+                              "\\|" "\\(^\\|;\\) *for +\\(\\(:?\\sw\\|\\s_\\)+\\)"
                               " +in\\>" "\\)")
                              p2 t '(match-beginning 0))
-          (cond ((looking-at "\\(^\\|;\\) *\\([a-z][a-z0-9_]*\\) *:= *")
+          (cond ((looking-at "\\(^\\|;\\) *\\(\\(:?\\sw\\|\\s_\\)+\\) *:= *")
                  (setq name (buffer-substring (match-beginning 2) (match-end 2)))
                  (goto-char (match-end 0))
                  (if (looking-at "function *(")
@@ -827,7 +827,7 @@ Formatting of the local statement is determined by
                        (if (not (gap-find-matching "\\<function\\>"
                                                    "\\<end\\>" nil t t))
                            (error "No local function end?!")))))
-                ((looking-at "\\(^\\|;\\) *for +\\([a-z][a-z0-9_]*\\) +in\\>")
+                ((looking-at "\\(^\\|;\\) *for +\\(\\(:?\\sw\\|\\s_\\)+\\) +in\\>")
                  (setq name (buffer-substring (match-beginning 2) (match-end 2)))
                  (goto-char (match-end 0)))
                 (t (error "Programming error in gap-insert-local-variables!")))
@@ -976,7 +976,7 @@ if point is on the first character of 'while', 'for', 'repeat',
                                    "\\<\\(else\\|elif\\)\\>" t))
                ((looking-at "\\<fi\\>")
                 (gap-find-matching "\\<if\\>" "\\<fi\\>" nil -1))
-               ((looking-at "\\<\\(else\\|elif\\)\\>")
+               ((looking-at "\\<\\(else\\|elif\\|then\\)\\>")
                 (goto-char (match-end 0))
                 (gap-find-matching "\\<if\\>" "\\<fi\\>"
                                    "\\<\\(else\\|elif\\)\\>" t))
@@ -1217,7 +1217,7 @@ If TERMINATE is non-nil don't check any further entries.")
   "Return the identifier around the point as a string."
   (save-excursion
     (let (beg)
-      (if (not (looking-at "\\(\\_>\\|\\s_\\|\\sw\\)"))
+      (if (not (looking-at "\\(?:\\_>\\|\\s_\\|\\sw\\)"))
           ""
         (and (< (point) (point-max))
              (forward-char 1))
