@@ -1047,7 +1047,13 @@ if point is on the first character of 'while', 'for', 'repeat',
               (gap-find-matching "\\<function\\>" "\\<end\\>" "\\<end\\>" -1 t)
               (gap-match-group))
     (setq arg (1- arg)))
-  (beginning-of-line)
+  ;; Skip backwards past the documentation
+  (forward-line -1)
+  (while (and (> (point) (point-min))
+              (looking-at "^#[#A-Z]"))
+    (forward-line -1))
+  (unless (looking-at "^#[#A-Z]")
+    (forward-line 1))
   ;; Signal that we found one
   t)
 
