@@ -398,8 +398,6 @@ other value will cause the file to be saved automatically."
      (2 'font-lock-doc-string-face t))
     ("^##\\s +\\(.*\\)"
      1 'font-lock-doc-string-face t)
-    ;; TODO: could use an eval form to scan the buffer for function
-    ;; declarations and mark them...
 
     ;; These are for interactive gap use.  Technically should probably
     ;; only be for gap-process-mode, but they shouldn't show up in a
@@ -491,6 +489,9 @@ For format of ths variable see `font-lock-keywords'.")
     map))
 
 ;; TODO: make beginning/end-of-block commands
+
+(unless (fboundp 'prog-mode) (defalias 'prog-mode 'fundamental-mode))
+
 ;;;###autoload
 (define-derived-mode gap-mode prog-mode "GAP"
   "Major mode for writing GAP programs.  The following keys are defined:
