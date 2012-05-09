@@ -100,9 +100,9 @@ creates a new one if `gap-local-variable-inserts-statement' is non-nil).
 Installation
 ============
 
-Put the file  "gap-mode.el" into a directory in your  Emacs lisp load path.
-If you wish to run GAP within an Emacs buffer, also put "gap-process.el" at
-the same place.  Add the following lines to your ".emacs" startup file.
+Put the files  "gap-mode.el" and "gap-process.el" into a  directory in your
+Emacs lisp load path, and add  the following lines to your ".emacs" startup
+file.
 
     ;; gap mode
     (autoload 'gap-mode "gap-mode" "Gap editing mode" t)
@@ -120,8 +120,8 @@ should complete  installation!  You should  then evaluate (e.g.  via `M-:`)
 `(customize-group 'gap)` and read and change whatever settings you like.
 
 
-If you like to see the help inside emacs, but use other settings
-inside a terminal then you can add the following to your ~/.gaprc
+If you like to  see the help inside emacs, but use  other settings inside a
+terminal then you can add the following to your .gaprc file:
 
     # Versions 4.4 and 4.5 use different formats for environment variables
     if (IsRecord(GAPInfo.SystemEnvironment) and
