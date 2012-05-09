@@ -103,7 +103,7 @@
 (defgroup gap nil
   "Support for the GAP programming language."
   :group 'languages
-  :prefix "gap"
+  :prefix "gap-"
   ;; :link '(function-link gap-mode)
   )
 
@@ -113,7 +113,7 @@ If non-nil take unclosed brackets into account, which is good for
 formatting lists and matrices."
   :group 'gap
   :type 'boolean
-  :safe t)
+  :safe 'booleanp)
 
 (defcustom gap-bracket-threshold 8
   "The maximum value which brackets will increase indentation.
@@ -122,19 +122,21 @@ help prevent deeply nested lists from being indented too far."
   :group 'gap
   :type '(choice (const :tag "No limit" nil)
                  (integer :tag "Bracket indentation limit"))
-  :safe t)
+  :safe (lambda (value)
+          (or (null value)
+              (integerp value))))
 
 (defcustom gap-indent-step 4
   "Amount of indentation for each level of grouping in GAP code."
   :group 'gap
   :type 'integer
-  :safe t)
+  :safe 'integerp)
 
 (defcustom gap-indent-step-continued 2
   "Amount of indentation to add for normal continued lines."
   :group 'gap
   :type 'integer
-  :safe t)
+  :safe 'integerp)
 
 (defcustom gap-indent-comments t
   "Controls how the indent command works on comments.
@@ -148,7 +150,8 @@ If nil then use calculated indentation level only."
                  (const :tag "Cursor 1 character to the right of #" 1)
                  (const :tag "Calculated indentation only" nil)
                  (other :tag "Cursor to the right of the # character" t))
-  :safe t)
+  :safe (lambda (value)
+          (memq value '(0 1 nil t))))
 
 (defcustom gap-indent-comments-flushleft nil
   "Whether flush-left comments should be indented normally.
@@ -157,25 +160,23 @@ regardless of whether the comment is flush-left or not.  Set this
 to nil to not indent flush-left comments at all."
   :group 'gap
   :type 'boolean
-  :safe t)
+  :safe 'booleanp)
 
 (defcustom gap-auto-indent-comments t
   "Whether the region indentation commands indent comment lines."
   :group 'gap
   :type 'boolean
-  :safe t)
+  :safe 'booleanp)
 
 (defcustom gap-pre-return-indent t
   "If non-nil autoindent before inserting a newline when RET is pressed."
   :group 'gap
-  :type 'boolean
-  :safe t)
+  :type 'boolean)
 
 (defcustom gap-post-return-indent t
   "If non-nil autoindent after a RET keypress."
   :group 'gap
-  :type 'boolean
-  :safe t)
+  :type 'boolean)
 
 (defcustom gap-electric-semicolon t
   "If non-nil a semicolon will create a newline as well.
@@ -183,8 +184,7 @@ At the beginning of a line, instead adds semicolon to the end of the
 previous line so that two semicolons in a row does the right thing.
 If nil semicolons act normally."
   :group 'gap
-  :type 'boolean
-  :safe t)
+  :type 'boolean)
 
 (defcustom gap-electric-equals t
   "If non-nil pressing equals will toggle between ':=' and '='.
@@ -192,8 +192,7 @@ When pressing equals not preceded by an equals sign, or with a
 prefix argument, it will simply insert an equals sign.  If nil
 equals behaves normally."
   :group 'gap
-  :type 'boolean
-  :safe t)
+  :type 'boolean)
 
 (defcustom gap-electric-percent nil
   "Whether the % key should emulate the % key in vi.
@@ -204,8 +203,7 @@ If non-nil pressing % will jump between beginning and end of
 groups.  With `prefix-arg' or if point is not at the end of a
 group pressing % will act as `self-insert-command'."
   :group 'gap
-  :type 'boolean
-  :safe t)
+  :type 'boolean)
 
 ;; TODO: should update this to use filladapt which is more common I think
 ;; TODO: this probably shouldn't be a defcustom, but I don't know enough about `gin-mode'
@@ -214,13 +212,13 @@ group pressing % will act as `self-insert-command'."
   "Regular expression to allow `gin-mode' to fill GAP comments."
   :group 'gap
   :type 'regexp
-  :safe t)
+  :safe 'stringp)
 
 (defcustom gap-fill-if-gin nil
   "If non-nil use `gin-mode' to fill paragraphs when \\<gap-mode-map>\\[gap-format-region] is called."
   :group 'gap
   :type 'boolean
-  :safe t)
+  :safe 'booleanp)
 
 (defcustom gap-tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44
                                  48 52 56 60 64 68 72 74 78)
@@ -231,13 +229,14 @@ depends on the variable `gap-indent-step'.  Indentation of
 comments is also affected by `gap-indent-comments-flushleft'."
   :group 'gap
   :type '(repeat integer)
-  :safe t)
+  :safe (lambda (value)
+          (and (listp value)
+               (not (memq nil (mapcar (function integerp) value))))))
 
 (defcustom gap-mode-hook nil
   "Hook run when entering GAP mode."
   :group 'gap
-  :type 'hook
-  :safe t)
+  :type 'hook)
 
 (defcustom gap-local-statement-format '(2 1)
   "Determines how local variable statements should be formatted.
@@ -245,13 +244,16 @@ It is a two element list consisting of the number of spaces after
 \"local\", and the number of spaces after each comma."
   :group 'gap
   :type '(list integer integer)
-  :safe t)
+  :safe (lambda (value)
+          (and (listp value)
+               (integerp (car value))
+               (integerp (cadr value)))))
 
 (defcustom gap-local-statement-margin (if fill-column fill-column 75)
   "Column at which to wrap local variable statement."
   :group 'gap
   :type 'integer
-  :safe t)
+  :safe 'integerp)
 
 (defcustom gap-local-statements-at-beginning nil
   "Determines where local variable statements should be inserted.
@@ -259,42 +261,39 @@ If non-nil they are inserted on the first line of a function,
 otherwise they are inserted on the previous line."
   :group 'gap
   :type 'boolean
-  :safe t)
+  :safe 'booleanp)
 
 (defcustom gap-regenerate-local-statements nil
   "If non-nil local var statements will deleted before new ones are created."
   :group 'gap
-  :type 'boolean
-  :safe t)
+  :type 'boolean)
 
 (defcustom gap-local-variable-inserts-statement t
   "Determines whether adding a variable to a local statement can create it.
 If non-nil, \\<gap-mode-map>\\[gap-add-local-variable] will create a local var statement with the current
 variable if there is no existing statement.  Otherwise an error is signaled."
   :group 'gap
-  :type 'boolean
-  :safe t)
+  :type 'boolean)
 
 (defcustom gap-insert-debug-name "Info"
   "Function name to use when inserting a debugging/print statement."
   :group 'gap
   :type 'string
-  :safe t)
+  :safe 'stringp)
 
 (defcustom gap-insert-debug-string "#I  %s: "
   "String to use when inserting a debugging/print statement.
 A %s is substituted with the name of the current function."
   :group 'gap
   :type 'string
-  :safe t)
+  :safe 'stringp)
 
 ;; TODO: make a gap-completion-function which could be dabbrev or not.
 ;; Then deprecate this
 (defcustom gap-use-dabbrev t
   "If non-nil the completion will use dabbrev instead of a running GAP process."
   :group 'gap
-  :type 'boolean
-  :safe t)
+  :type 'boolean)
 
 (defcustom gap-eval-file-should-save 'query
   "Determines whether evaluating a file with GAP should save first.
@@ -304,14 +303,12 @@ other value will cause the file to be saved automatically."
   :group 'gap
   :type '(choice (const :tag "Never" nil)
                  (const :tag "Ask" query)
-                 (other :tag "Always" t))
-  :safe t)
+                 (other :tag "Always" t)))
 
 (defcustom gap-debug-indent nil
   "If non-nil show the facts that indentation is based on."
   :group 'gap
-  :type 'boolean
-  :safe t)
+  :type 'boolean)
 
 ;; Interaction with other modes
 
