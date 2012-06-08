@@ -1746,6 +1746,16 @@ end statement."
     t))
 
 ;;}}}
+;;{{{ Setup auto-mode-alist
+
+;;;###autoload
+(add-to-list 'auto-mode-alist
+             (cons (concat "\\."
+                           (regexp-opt '("gap" "g" "gd" "gi") t)
+                           "\\'")
+                   'gap-mode))
+
+;;}}}
 
 (provide 'gap-mode)
 
