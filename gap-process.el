@@ -176,6 +176,7 @@ See `gap-auto-start-gap'."
   (or gap-auto-start-gap
       (gap-running-p)))
 
+;;;###autoload
 (defun gap (&optional send-buffer)
   "Start or switch to a GAP session.
 If SEND-BUFFER is non-nil, send the contents of the current
@@ -205,7 +206,7 @@ buffer to the GAP session as initial standard input."
           (comint-send-string proc "\n")))
     (pop-to-buffer gap-process-buffer)))
 
-(define-derived-mode gap-process-mode comint-mode "Gap"
+(define-derived-mode gap-process-mode comint-mode "Inferior Gap"
   "Major mode for interacting with GAP.
 \\<gap-process-map>Provides support for completion (via \\[gap-complete]) and GAP's help
 system.  Invoking \\[gap-help] will provide help on the current
