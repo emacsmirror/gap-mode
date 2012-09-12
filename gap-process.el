@@ -112,8 +112,7 @@ Otherwise will use the default directory of the new *GAP* buffer."
 (defcustom gap-process-beep nil
   "If non-nil beep when GAP asks."
   :group 'gap
-  :type 'boolean
-  :safe t)
+  :type 'boolean)
 
 (defcustom gap-complete-double-cols t
   "Controls final formatting of the GAP completions buffer.
@@ -123,8 +122,7 @@ or t, then always make the completions list double columnes."
   :group 'gap
   :type '(choice (const :tag "Never use double columns" nil)
                  (const :tag "Sometimes use double columns" t)
-                 (other :tag "Always use double columns" 'always))
-  :safe t)
+                 (other :tag "Always use double columns" 'always)))
 
 (defcustom gap-auto-start-gap nil
   "If non-nil, automatially start an interpreter when required.
