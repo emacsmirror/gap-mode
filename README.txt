@@ -100,6 +100,30 @@ creates a new one if `gap-local-variable-inserts-statement' is non-nil).
 Installation
 ============
 
+MELPA
+-----
+
+You  can now  install gap-mode  through MELPA  (http://melpa.milkbox.net/).
+This makes  installation easier and  especially makes it easier  to update.
+If  you have  Emacs  24 (or  later) then  package.el  is already  included.
+Otherwise you  will have to install  it by downloading an  old version from
+https://github.com/technomancy/package.el
+
+After than you have to tell it to use MELPA, so add something like
+
+    (setq package-archives
+          '(("melpa"     . "http://melpa.milkbox.net/packages/")
+            ("gnu"       . "http://elpa.gnu.org/packages/")))
+    (package-initialize)
+
+to your .emacs.  Finally,  run `package-list-packages`, find gap-mode, type
+`i` (for install)  and then `x` (to execute).  It  will download the latest
+version and  install it automatically.  Running  `package-list-packages` in
+the future will allow you to easily updage gap-mode.
+
+Manual Installation
+-------------------
+
 Put the files  "gap-mode.el" and "gap-process.el" into a  directory in your
 Emacs lisp load path, and add  the following lines to your ".emacs" startup
 file.
@@ -111,13 +135,17 @@ file.
                                   auto-mode-alist))
     (autoload 'gap "gap-process" "Run GAP in emacs buffer" t)
 
+
+Configuration
+-------------
+
+For gap-mode  to function properly  you will have  to set a  few variables,
+either via `M-x customize-group RET gap RET`, or by setting them directly in
+your .emacs like
+
     (setq gap-executable "/usr/algebra/bin/gap")
     (setq gap-start-options (list "-l" "/usr/algebra/gap3.1/lib"
                                   "-m" "2m"))
-
-Change the  path to  your GAP executable  and library  appropriately.  That
-should complete  installation!  You should  then evaluate (e.g.  via `M-:`)
-`(customize-group 'gap)` and read and change whatever settings you like.
 
 
 If you like to  see the help inside emacs, but use  other settings inside a
@@ -149,7 +177,7 @@ Michael Smith
 Mathematics Research Section
 Australian National University.
 
-Contributions by Gary Zablackis
+Contributions by Gary Zablackis and Goetz Pfeiffer
 
 Now maintained by
 
