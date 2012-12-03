@@ -97,7 +97,7 @@ You may need to specify -f to force line editing."
   :group 'gap
   :type '(repeat string))
 
-(defcustom gap-prompt-regexp "\\(.*\\(gap\\|brk[_0-9]*\\)>\\|^>\\) *"
+(defcustom gap-prompt-regexp "\\(\\(gap\\|brk[_0-9]*\\)>\\|^>\\) *"
   "Regexp used by Newline command in GAP mode to match prompt."
   :group 'gap
   :type 'regexp)
@@ -316,7 +316,6 @@ possible output states GAP is in:
           (insert (string-strip-chars string " \C-h\C-g\C-m"))))))
     (set-buffer cbuf)))
 
-;; TODO: problem with Combinations
 (defun gap-help-filter (proc string)
   "Filter the output a help command into a *Help* buffer.
 It must handle the continuation prompts by stripping them and
@@ -336,7 +335,7 @@ sending spaces to continue the output until finished."
       (comint-send-string proc " "))                           ;;NOTE: tell GAP to continue with next page
 
                                         ;(if (looking-at gap-prompt-regexp)                             ;;GEZ: original
-    (when (looking-at (concat gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
+    (when (looking-at (concat "^" gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
       (delete-region (point) (point-max))
       (gap-cleanup-help-buffer)
       (goto-char (point-min))
