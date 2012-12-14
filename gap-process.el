@@ -158,6 +158,16 @@ Otherwise signals an error."
 (defvar gap-pending-input nil
   "Holds input to feed slowly to GAP when starting with buffer as input.")
 
+(defvar gap-mode-gaprc
+  (let ((gaprc (concat (file-name-directory
+                        (or load-file-name
+                            (buffer-file-name)))
+                       "emacs.gaprc")))
+    (and (file-exists-p gaprc)
+         gaprc))
+  "The path to the emacs-specific gaprc file.
+This file will be loaded after GAP has successfully started up.")
+
 (defvar gap-pending-pointer nil)
 
 (defvar gap-completing-buffer nil
@@ -183,8 +193,15 @@ If SEND-BUFFER is non-nil, send the contents of the current
 buffer to the GAP session as initial standard input."
   (interactive "P")
   (if (not (gap-running-p))
-      (let (proc)
-        (setq gap-pending-input (if send-buffer (buffer-string) nil))
+      (let ((have-input (or gap-mode-gaprc send-buffer))
+            proc)
+        (setq gap-pending-input
+              (if have-input
+                  (concat (if gap-mode-gaprc
+                              (format "Read(\"%s\");\n"
+                                      gap-mode-gaprc)
+                            nil)
+                          (if send-buffer (buffer-string) nil))))
         (setq gap-pending-pointer 0)
         (setq gap-process-buffer
               (get-start-process gap-executable "GAP"
@@ -194,9 +211,9 @@ buffer to the GAP session as initial standard input."
                                  gap-start-options))
         (setq proc (get-buffer-process gap-process-buffer))
         (gap-process-mode)
-        (if (not send-buffer)
-            (set-process-filter proc 'gap-output-filter)
-          (set-process-filter proc 'gap-startfile-filter)))
+        (if have-input
+            (set-process-filter proc 'gap-startfile-filter)
+          (set-process-filter proc 'gap-output-filter)))
     (if send-buffer
         (let (proc)
           (setq gap-pending-input (buffer-string))
@@ -321,7 +338,7 @@ possible output states GAP is in:
 It must handle the continuation prompts by stripping them and
 sending spaces to continue the output until finished."
   (let ((cbuf (current-buffer)))
-    (set-buffer "*Help*")
+    (set-buffer (get-buffer-create "*Help*"))
     (setq buffer-read-only nil)                                     ;; GEZ: so we can put help info into the buffer
     (set (make-local-variable 'show-trailing-whitespace) nil)
     (goto-char (point-max))
@@ -340,6 +357,21 @@ sending spaces to continue the output until finished."
       (gap-cleanup-help-buffer)
       (goto-char (point-min))
       (set-process-filter proc 'gap-output-filter))
+    (when (re-search-forward (concat "^GAP Help in \\(.*\\) with offset \\([0-9]+\\)$") nil t)                ;;GEZ: make sure get the end of it all
+      (let ((help-file (match-string 1))
+            (offset (string-to-number (match-string 2))))
+        (insert-file-contents help-file nil nil nil t)
+        (gap-cleanup-help-buffer)
+        (set-buffer-modified-p nil)
+
+        ;; Fancy tricks to make changes to point "stick"
+        (pop-to-buffer (current-buffer))
+        (goto-char (point-min))
+        (forward-line (1- offset))
+        (recenter-top-bottom 2)
+        (pop-to-buffer cbuf)
+
+        (set-process-filter proc 'gap-output-filter)))
     (set-buffer cbuf)))
 
 (defun gap-cleanup-help-buffer ()
