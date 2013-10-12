@@ -27,3 +27,13 @@ if IsBound(HELP_VIEWER_INFO) and IsRecord(HELP_VIEWER_INFO) then
     end );
 
 fi;
+
+if IsBound(GAPInfo.UseReadline) then
+    Print( "\n\n\tIt appears that you have readline editing enabled.\n" );
+    Print( "\tThis is known to cause problems in which the output is not displayed.\n" );
+    Print( "\tIf you experience such problems, please customize `gap-start-options'\n" );
+    Print( "\tand add or remove \"-E\"\n\n" );
+    Print( "\tTo do this, position you cursor after the closing parenthesis below\n");
+    Print( "\tand type Control-x Control-e.\n\n" );
+    Print( "\t(customize-variable 'gap-start-options)\n\n\n" );
+fi;
