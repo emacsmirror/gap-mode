@@ -310,6 +310,13 @@ other value will cause the file to be saved automatically."
   :group 'gap
   :type 'boolean)
 
+(defcustom gap-use-smie nil
+  "If non-nil use SMIE for indentation.
+SMIE support should provide better performance and more features,
+but is experimental."
+  :group 'gap
+  :type 'boolean)
+
 ;; Interaction with other modes
 
 ;; Support `imenu' and therefore `which-function-mode'
@@ -558,7 +565,11 @@ end;"
     (add-to-list 'which-func-modes 'gap-mode))
   (set (make-local-variable 'comment-start) "#")
   (setq indent-tabs-mode nil)
-  (set (make-local-variable 'tab-stop-list) gap-tab-stop-list))
+  (set (make-local-variable 'tab-stop-list) gap-tab-stop-list)
+  ;; Use SMIE for indentation
+  (when (and gap-use-smie
+             (require 'smie nil t))
+    (smie-setup gap-smie-grammar #'gap-smie-rules)))
 
 ;;}}}
 ;;{{{ user commands
