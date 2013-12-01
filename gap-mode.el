@@ -317,6 +317,9 @@ but is experimental."
   :group 'gap
   :type 'boolean)
 
+(defvar gap-using-smie nil
+  "Whether SMIE was enabled and available.")
+
 ;; Interaction with other modes
 
 ;; Support `imenu' and therefore `which-function-mode'
@@ -567,8 +570,9 @@ end;"
   (setq indent-tabs-mode nil)
   (set (make-local-variable 'tab-stop-list) gap-tab-stop-list)
   ;; Use SMIE for indentation
-  (when (and gap-use-smie
-             (require 'smie nil t))
+  (setq gap-using-smie (and gap-use-smie
+                            (require 'smie nil t)))
+  (when gap-using-smie
     (smie-setup gap-smie-grammar #'gap-smie-rules)))
 
 ;;}}}
@@ -607,10 +611,14 @@ The behavior is determined by the variables
   (interactive)
   (open-line 1)
   (when gap-pre-return-indent
-    (gap-indent-line))
+    (if gap-using-smie
+        (indent-for-tab-command)
+      (gap-indent-line)))
   (forward-char 1)
   (when gap-post-return-indent
-    (gap-indent-line)
+    (if gap-using-smie
+        (indent-for-tab-command)
+      (gap-indent-line))
     (back-to-indentation)))
 
 (defun gap-electric-semicolon (arg)
