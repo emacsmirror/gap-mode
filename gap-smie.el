@@ -86,6 +86,7 @@ See `smie-rules-function' for meaning of KIND and TOKEN."
              (forward-sexp 1)
              (smie-rule-hanging-p))
        (smie-rule-parent)))
+
     (`(:after . ")")
      (save-excursion
        (up-list -1)
@@ -93,7 +94,7 @@ See `smie-rules-function' for meaning of KIND and TOKEN."
          `(column . ,(+ gap-indent-step (smie-indent-virtual))))))
 
     ;; It was aligning with the token following the if...
-    (`(:before . "then")
+    (`(:before . ,(or `"then" `"elif" `"else"))
      0)
 
     ;; Stolen from ruby-mode -- need to check these...
