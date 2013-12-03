@@ -32,8 +32,7 @@
             ("if" if-body "fi")
             ("return" exp)
             ("local" exps))
-
-      (insts (insts ";" insts) (inst))
+      (insts (insts ";" insts) (insts ";;" insts) (inst))
       (exp ("(" exps ")")
            ("[" exps "]")
            ("{" exps "}")
@@ -62,7 +61,7 @@
       (ielsei (itheni) (itheni "else" insts))
       (if-body (ielsei) (if-body "elif" if-body)))
 
-    '((assoc ";"))
+    '((assoc ";" ";;"))
     '((assoc ","))
     '((assoc "elif"))
     '((assoc "not")
@@ -104,7 +103,7 @@ See `smie-rules-function' for meaning of KIND and TOKEN."
                      `"elif" `"do" `"repeat" `"while"))
      gap-indent-step)
 
-    (`(:before . ";")
+    (`(:before . ,(or `";" `";;"))
      (cond
       ((smie-rule-parent-p "function" "repeat" "while" "for"
                            "if" "then" "elif" "else" "when")
@@ -113,7 +112,7 @@ See `smie-rules-function' for meaning of KIND and TOKEN."
 
     (`(:after . ,(or "=" ":=" "+" "-" "*" "/" "^"
                      ">" "<" ">=" "<=" "<>" "and" "or"))
-     (if (smie-rule-parent-p ";" nil) gap-indent-step))))
+     (if (smie-rule-parent-p ";" ";;" nil) gap-indent-step))))
 
 (provide 'gap-smie)
 
