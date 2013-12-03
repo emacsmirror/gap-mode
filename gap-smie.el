@@ -79,6 +79,8 @@
 See `smie-rules-function' for meaning of KIND and TOKEN."
   (pcase (cons kind token)
 
+    (`(:before . ",") (smie-rule-separator kind))
+
     ;; Handle indentation of XX := function(...) ... end
     (`(:before . "function")
      (when (save-excursion
