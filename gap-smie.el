@@ -110,7 +110,7 @@ See `smie-rules-function' for meaning of KIND and TOKEN."
       ))
 
     (`(:after . ,(or "=" ":=" "+" "-" "*" "/" "^"
-                     ">" "<" ">=" "<=" "<>" "and" "or"))
+                     ">" "<" ">=" "<=" "<>" "and" "or" "in"))
      (if (smie-rule-parent-p ";" ";;" nil) gap-indent-step))))
 
 (provide 'gap-smie)
