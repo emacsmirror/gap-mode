@@ -571,7 +571,8 @@ end;"
   (set (make-local-variable 'tab-stop-list) gap-tab-stop-list)
   ;; Use SMIE for indentation
   (setq gap-using-smie (and gap-use-smie
-                            (require 'smie nil t)))
+                            (require 'smie nil t)
+                            (require 'gap-smie nil t)))
   (when gap-using-smie
     (smie-setup gap-smie-grammar #'gap-smie-rules)))
 
