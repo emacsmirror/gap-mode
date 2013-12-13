@@ -28,7 +28,7 @@
             ("function" insts "end")
             ("repeat" insts "until" exp)
             ("while" exp "do" insts "od")
-            ("for" id "in" exp "do" insts "od")
+            ("for" in-exp "do" insts "od")
             ("if" if-body "fi")
             ("return" exp)
             ("local" exps))
@@ -36,9 +36,8 @@
       (exp ("(" exps ")")
            ("[" exps "]")
            ("{" exps "}")
-
            ("not" exp)
-
+           (in-exp)
            (exp ".." exp)
            (exp "and" exp)
            (exp "or" exp)
@@ -55,7 +54,7 @@
            (exp "/" exp)
            (exp "mod" exp)
            (exp "^" exp))
-
+      (in-exp (exp "in" exp))
       (exps (exps "," exps) (exp))
       (itheni (insts) (exp "then" insts))
       (ielsei (itheni) (itheni "else" insts))
@@ -67,7 +66,7 @@
     '((assoc "not")
       (assoc "..")
       (assoc "and" "or")
-      (assoc "<" "<=" "=" ">=" ">" "<>") ;; "in"
+      (assoc "<" "<=" "=" ">=" ">" "<>" "in")
       (assoc "+" "-")
       (assoc "*" "/" "mod")
       (assoc "^"))))
