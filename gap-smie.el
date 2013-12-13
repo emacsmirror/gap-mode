@@ -75,6 +75,9 @@
 (defun gap-smie-rules (kind token)
   "SMIE indentation rules for the GAP language.
 See `smie-rules-function' for meaning of KIND and TOKEN."
+  (when (and gap-debug-indent
+             (not (use-region-p)))
+    (message "%s %s" kind token))
   (pcase (cons kind token)
 
     (`(:before . ",") (smie-rule-separator kind))
