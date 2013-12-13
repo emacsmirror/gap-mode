@@ -24,7 +24,6 @@
    (smie-bnf->prec2
     '((id)
       (inst (exp) ;not technically, but probably makes sense
-            (exp ":=" exp)
             ("function" insts "end")
             ("repeat" insts "until" exp)
             ("while" exp "do" insts "od")
@@ -38,6 +37,7 @@
            ("{" exps "}")
            ("not" exp)
            (in-exp)
+           (exp ":=" exp)
            (exp ".." exp)
            (exp "and" exp)
            (exp "or" exp)
@@ -47,7 +47,6 @@
            (exp ">=" exp)
            (exp ">" exp)
            (exp "<>" exp)
-           ;; (exp "in" exp)
            (exp "+" exp)
            (exp "-" exp)
            (exp "*" exp)
@@ -63,7 +62,8 @@
     '((assoc ";" ";;"))
     '((assoc ","))
     '((assoc "elif"))
-    '((assoc "not")
+    '((assoc ":=")
+      (assoc "not")
       (assoc "..")
       (assoc "and" "or")
       (assoc "<" "<=" "=" ">=" ">" "<>" "in")
