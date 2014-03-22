@@ -138,6 +138,12 @@ help prevent deeply nested lists from being indented too far."
   :type 'integer
   :safe 'integerp)
 
+(defcustom gap-indent-list 2
+  "Amount of indentation to add for lists."
+  :group 'gap
+  :type 'integer
+  :safe 'integerp)
+
 (defcustom gap-indent-comments t
   "Controls how the indent command works on comments.
 A comment will be indented to the next tab-stop if `gap-indent-comments' is:

@@ -80,6 +80,13 @@ See `smie-rules-function' for meaning of KIND and TOKEN."
     (message "%s %s" kind token))
   (pcase (cons kind token)
 
+    ;; Lists etc. should indent differently
+    (`(:after . ,(or `"[" `"(" `"{"))
+     (when (save-excursion
+             (forward-char 1)
+             (or (eolp) (forward-comment 1)))
+       (cons 'column (+ (current-column) gap-indent-list))))
+
     (`(:before . ",") (smie-rule-separator kind))
 
     ;; Handle indentation of XX := function(...) ... end
@@ -100,9 +107,8 @@ See `smie-rules-function' for meaning of KIND and TOKEN."
     (`(:before . ,(or `"then" `"elif" `"else"))
      0)
 
-    ;; Stolen from ruby-mode -- need to check these...
-    (`(:after . ,(or `"if" `"else" `"then"
-                     `"elif" `"do" `"repeat" `"while"))
+    (`(:after . ,(or `"if" `"then" `"elif" `"else"
+                     `"do" `"repeat" `"while"))
      gap-indent-step)
 
     (`(:before . ,(or `";" `";;"))
