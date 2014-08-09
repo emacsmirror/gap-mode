@@ -862,7 +862,8 @@ Formatting of the local statement is determined by
       (if (not gap-local-statements-at-beginning)
           (beginning-of-line)
         (gap-find-matching "\\<function\\>" "\\<end\\>" nil -1 t)
-        (forward-sexp 2)
+        (forward-word 1)
+        (forward-sexp 1)
         (forward-line))
       (when regenerate
         (let ((p (point)))
