@@ -1105,8 +1105,10 @@ depending on the value of `gap-auto-start-gap'."
   (interactive "r")
   (ensure-gap-running nil)
   (let ((process (get-buffer-process gap-process-buffer)))
-    (setq gap-send-state 'normal)
-    (set-process-filter process 'gap-output-filter)
+    (when (not (eq (process-filter process)
+                   'gap-startfile-filter))
+      (setq gap-send-state 'normal)
+      (set-process-filter process 'gap-output-filter))
     (display-buffer (process-buffer process))
     (with-current-buffer gap-process-buffer
       (goto-char (process-mark process)))
@@ -1120,8 +1122,10 @@ If GAP is not running it will signal an error or start it
 depending on the value of `gap-auto-start-gap'."
   (ensure-gap-running nil)
   (let ((process (get-buffer-process gap-process-buffer)))
-    (setq gap-send-state 'normal)
-    (set-process-filter process 'gap-output-filter)
+    (when (not (eq (process-filter process)
+                   'gap-startfile-filter))
+      (setq gap-send-state 'normal)
+      (set-process-filter process 'gap-output-filter))
     (display-buffer (process-buffer process))
     (with-current-buffer gap-process-buffer
       (goto-char (process-mark process)))
