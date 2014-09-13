@@ -130,9 +130,25 @@ Otherwise signals an error."
   :group 'gap
   :type 'boolean)
 
+(defcustom gap-help-max-continues 50
+  "The maximum number of times to continue getting help.
+Recent GAP is willing to print out the "
+  :group 'gap
+  :type 'integer)
+
 ;;}}}
 
-(defvar gap-process-map nil)
+(defvar gap-help-last-output-begin nil
+  "Together with `gap-help-last-output-end', this helps
+determine if the output from help has stabilized.")
+(defvar gap-help-last-output-end nil
+  "Together with `gap-help-last-output-begin', this helps
+determine if the output from help has stabilized.")
+(defvar gap-help-continues 0
+  "How many times we have continued this help session.")
+
+(defvar gap-process-map nil
+  "Keymap for use in the inferior GAP buffer.")
 (if gap-process-map nil
   (setq gap-process-map (copy-keymap comint-mode-map))
   (define-key gap-process-map "\C-m" 'gap-send)
@@ -337,7 +353,8 @@ possible output states GAP is in:
   "Filter the output a help command into a *Help* buffer.
 It must handle the continuation prompts by stripping them and
 sending spaces to continue the output until finished."
-  (let ((cbuf (current-buffer)))
+  (let ((cbuf (current-buffer))
+        (finished nil))
     (set-buffer (get-buffer-create "*Help*"))
     (setq buffer-read-only nil)                                     ;; GEZ: so we can put help info into the buffer
     (set (make-local-variable 'show-trailing-whitespace) nil)
@@ -349,10 +366,33 @@ sending spaces to continue the output until finished."
            nil t)                    ;;GEZ: Add to handle GAP 4.4.x output
       (delete-region (match-beginning 0) (point))
       (ansi-color-apply-on-region (point-min) (point-max))
-      (comint-send-string proc " "))                           ;;NOTE: tell GAP to continue with next page
 
-                                        ;(if (looking-at gap-prompt-regexp)                             ;;GEZ: original
-    (when (looking-at (concat "^" gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
+      ;; Compare last and this output to see if it's the same and
+      ;; hence we've reached the end of help.
+      (when (and gap-help-last-output-begin
+                 gap-help-last-output-end)
+        (let ((last (buffer-substring-no-properties
+                     gap-help-last-output-begin
+                     gap-help-last-output-end))
+              (this (buffer-substring-no-properties
+                     gap-help-last-output-end
+                     (point-max))))
+          (when (string-equal last this)
+            (setq finished t)
+            (delete-region gap-help-last-output-end (point-max)))))
+      (setq gap-help-last-output-begin gap-help-last-output-end)
+      (setq gap-help-last-output-end (point-max))
+      ;; Fall back in case the above fails for some reason (or if
+      ;; people just don't like too much help)
+      (setq gap-help-continues (1+ gap-help-continues))
+      (when (and (not finished)
+                 (> gap-help-continues gap-help-max-continues))
+        (setq finished t)
+        (delete-region (point) (point-max)))
+      ;; tell GAP to continue with next page (or not)
+      (comint-send-string proc (if finished "q" " ")))
+
+    (when (looking-at (concat "^[ ]*" gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
       (delete-region (point) (point-max))
       (gap-cleanup-help-buffer)
       (goto-char (point-min))
@@ -542,6 +582,9 @@ If ARG is non-nil start a GAP process regardless of value of
         (progn
           (with-output-to-temp-buffer "*Help*"
             (print-help-return-message))
+          (setq gap-help-last-output-begin nil
+                gap-help-last-output-end nil
+                gap-help-continues 0)
           (set-process-filter process 'gap-help-filter)
           (process-send-string process (concat "?" topic "\n"))))))
 
