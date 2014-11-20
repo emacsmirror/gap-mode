@@ -1,6 +1,6 @@
-
 Editing GAP files and running GAP in Emacs buffers
 ==================================================
+[![MELPA](http://melpa.org/packages/gap-mode-badge.svg)](http://melpa.org/#/gap-mode)
 
 (Written 20 Feb 1993)
 (Revised 1 Nov 2011)
