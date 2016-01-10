@@ -316,7 +316,7 @@ other value will cause the file to be saved automatically."
   :group 'gap
   :type 'boolean)
 
-(defcustom gap-use-smie nil
+(defcustom gap-use-smie t
   "If non-nil use SMIE for indentation.
 SMIE support should provide better performance and more features,
 but is experimental."
