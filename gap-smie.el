@@ -27,6 +27,7 @@
             ("function" insts "end")
             ("repeat" insts "until" exp)
             ("while" exp "do" insts "od")
+            ("atomic" exp "do" insts "od")
             ("for" in-exp "do" insts "od")
             ("if" if-body "fi")
             ("return" exp)
@@ -108,12 +109,12 @@ See `smie-rules-function' for meaning of KIND and TOKEN."
      0)
 
     (`(:after . ,(or `"if" `"then" `"elif" `"else"
-                     `"do" `"repeat" `"while"))
+                     `"do" `"repeat" `"while" `"atomic"))
      gap-indent-step)
 
     (`(:before . ,(or `";" `";;"))
      (cond
-      ((smie-rule-parent-p "function" "repeat" "while" "for"
+      ((smie-rule-parent-p "function" "repeat" "while" "atomic" "for"
                            "if" "then" "elif" "else" "when")
        (smie-rule-parent gap-indent-step))
       ))
