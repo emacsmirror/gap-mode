@@ -378,7 +378,8 @@ but is experimental."
                (list "and" "do" "elif" "else" "end" "fi" "for"
                      "function" "if" "in" "local" "mod" "not"
                      "od" "or" "repeat" "return" "then" "until"
-                     "while" "quit" "QUIT" "break" "rec" "continue"))
+                     "while" "quit" "QUIT" "break" "rec" "continue"
+                     "atomic" "readwrite" "readonly"))
               "\\_>")
      . font-lock-keyword-face)
 
@@ -1008,7 +1009,7 @@ if point is on the first character of 'while', 'for', 'repeat',
                ((looking-at "\\<do\\>")
                 (goto-char (match-end 0))
                 (gap-find-matching "\\<do\\>" "\\<od\\>" nil t))
-               ((looking-at "\\<while\\|for\\>")
+               ((looking-at "\\<while\\|for\\|atomic\\>")
                 (re-search-forward "\\<do\\>" nil t)
                 (gap-find-matching "\\<do\\>" "\\<od\\>" nil t))
                ;; repeat/until
