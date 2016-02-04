@@ -20,7 +20,7 @@
 ;; sent to a separate *Completions*.
 ;;
 ;; Help is available at any time (that GAP is not busy) by pressing
-;; "?".  Output is to *Help* buffer.
+;; "?".  Output is to *GAP Help* buffer.
 ;;
 ;; To install, put this file somewhere in your load path, and add the
 ;; following line to your .emacs:
@@ -350,12 +350,12 @@ possible output states GAP is in:
     (set-buffer cbuf)))
 
 (defun gap-help-filter (proc string)
-  "Filter the output a help command into a *Help* buffer.
+  "Filter the output a help command into a *GAP Help* buffer.
 It must handle the continuation prompts by stripping them and
 sending spaces to continue the output until finished."
   (let ((cbuf (current-buffer))
         (finished nil))
-    (set-buffer (get-buffer-create "*Help*"))
+    (set-buffer (get-buffer-create "*GAP Help*"))
     (setq buffer-read-only nil)                                     ;; GEZ: so we can put help info into the buffer
     (set (make-local-variable 'show-trailing-whitespace) nil)
     (goto-char (point-max))
@@ -415,7 +415,7 @@ sending spaces to continue the output until finished."
     (set-buffer cbuf)))
 
 (defun gap-cleanup-help-buffer ()
-  "Cleans up the *Help* buffer from all the weird GAP output.
+  "Cleans up the *GAP Help* buffer from all the weird GAP output.
 Also adds links."
   (ansi-color-apply-on-region (point-min) (point-max))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -561,7 +561,7 @@ running."
       nil))
 
 (defun gap-help (topic arg)
-  "Display GAP help about TOPIC in the *Help* buffer.
+  "Display GAP help about TOPIC in the *GAP Help* buffer.
 If ARG is non-nil start a GAP process regardless of value of
 `gap-auto-start-gap'."
   (interactive
@@ -580,7 +580,7 @@ If ARG is non-nil start a GAP process regardless of value of
   (let ((process (get-buffer-process gap-process-buffer)))
     (unwind-protect
         (progn
-          (with-output-to-temp-buffer "*Help*"
+          (with-output-to-temp-buffer "*GAP Help*"
             (print-help-return-message))
           (setq gap-help-last-output-begin nil
                 gap-help-last-output-end nil

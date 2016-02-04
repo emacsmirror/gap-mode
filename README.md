@@ -75,7 +75,7 @@ TAB  will complete  as usual, except  that  if there is no unique (partial)
 completion then  the list  of completions will   be given immediately  in a
 separate *Completions* buffer. Similarly the help  function `?`, which will
 ask for  a topic (defaulting to  the current  identifier),  will   give its
-results in a *Help* buffer instead of the *gap* buffer.
+results in a *GAP Help* buffer instead of the *gap* buffer.
 
 In fact, if a GAP process is running in the *gap* buffer  and NOT BUSY with
 a  calculation, then  completion and help   are also  available in  the gap
