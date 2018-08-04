@@ -6,7 +6,7 @@ if IsBound(HELP_VIEWER_INFO) and IsRecord(HELP_VIEWER_INFO) then
     HELP_VIEWER_INFO.orig_screen := HELP_VIEWER_INFO.screen;
     HELP_VIEWER_INFO.screen := rec( type := "text",
                                     show := function(lines)
-        local tmpDir, filename;
+        local tmpDir, filename, str;
 
         # Standardize input
         if not IsRecord( lines ) then
@@ -20,7 +20,14 @@ if IsBound(HELP_VIEWER_INFO) and IsRecord(HELP_VIEWER_INFO) then
         # incorrectly parsing the paging construct if it ever changes.
         tmpDir := DirectoryTemporary( );
         filename := Filename( tmpDir, "emacs.help" );
-        FileString( filename, lines.lines );
+        # I think I might have to concantenate the strings before passing to FileString
+        str := lines.lines;
+        if IsList(lines.lines) and IsString(lines.lines[1]) then
+            str := Concatenation( List(lines.lines, x->Concatenation(String(x),"\n")));
+        fi;
+
+        # str := Concatenation( lines.lines );
+        FileString( filename, str );
 
         # This is what emacs will parse to know where to look for help data
         Print( "GAP Help in ", filename, " with offset ", lines.start );
