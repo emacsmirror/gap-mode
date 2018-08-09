@@ -397,6 +397,10 @@ sending spaces to continue the output until finished."
       (gap-cleanup-help-buffer)
       (goto-char (point-min))
       (set-process-filter proc 'gap-output-filter))
+    ;; Handle long lines, broken up by GAP
+    (while (re-search-forward "\\\\$" nil t)
+      (delete-region (1- (point)) (1+ (point)))
+      (goto-char (point-min)))
     (when (re-search-forward (concat "^GAP Help in \\(.*\\) with offset \\([0-9]+\\)$") nil t)                ;;GEZ: make sure get the end of it all
       (let ((help-file (match-string 1))
             (offset (string-to-number (match-string 2))))
