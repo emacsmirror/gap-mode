@@ -9,7 +9,7 @@ The files "gap-mode.el" and "gap-process.el" provide modes for both editing
 GAP  programs in  Emacs and running a  GAP  session within an Emacs buffer.
 Brief installation instructions are given at the end of this document.
 
-The latest version can be found at https://bitbucket.org/gvol/gap-mode .
+The latest version can be found at https://gitlab.org/gvol/gap-mode .
 
 Editing GAP files in Emacs
 --------------------------

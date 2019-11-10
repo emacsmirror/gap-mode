@@ -7,7 +7,7 @@
 ;; Maintainer: Ivan Andrus <darthandrus@gmail.com>
 ;; Version: 2.0
 ;; Keywords: gap
-;; URL: https://bitbucket.org/gvol/gap-mode
+;; URL: https://gitlab.com/gvol/gap-mode
 
 ;; This file is part NOT of GNU Emacs.
 
