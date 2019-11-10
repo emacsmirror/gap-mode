@@ -109,7 +109,7 @@ If  you have  Emacs  24 (or  later) then  package.el  is already  included.
 Otherwise you  will have to install  it by downloading an  old version from
 https://github.com/technomancy/package.el
 
-After than you have to tell it to use MELPA, so add something like
+After that, you have to tell package.el to use MELPA, so add something like
 
     (setq package-archives
           '(("melpa"     . "http://melpa.milkbox.net/packages/")
