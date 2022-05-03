@@ -341,7 +341,7 @@ possible output states GAP is in:
               (setq gap-send-state 'normal))
           ;; We seem to at least get the identifier back all at once,
           ;; sometimes more.
-          (when (not (looking-back gap-completion-ident))
+          (when (not (looking-back gap-completion-ident nil))
             (error "Got confused during completion"))
           (when (string-match gap-completion-ident string)
             (delete-char (- (length gap-completion-ident))))
