@@ -525,9 +525,8 @@ the process buffer.  Depending on the value of
   "Complete the partial identifier at point.
 With FULL, send two TABs to GAP to get a full list of completions."
   (interactive "*")
+  (ensure-gap-running)
   (let ((process (get-buffer-process gap-process-buffer)))
-    (if (not (gap-running-p))
-        (error "No GAP process running in buffer %s" gap-process-buffer))
     (if (not (looking-at "\\_>"))
         (if (not (re-search-forward "\\_>" nil t))
             (error "Complete what?")))
