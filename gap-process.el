@@ -544,7 +544,7 @@ With FULL, send two TABs to GAP to get a full list of completions."
           (progn
             (with-output-to-temp-buffer "*Completions*"
               (let ((buffer-read-only nil))
-                (print-help-return-message)))
+                (help-print-return-message)))
             (setq gap-completing-buffer (current-buffer))
             (set-process-filter process 'gap-completions-filter)
             (process-send-string process (concat gap-completion-ident
@@ -585,7 +585,7 @@ If ARG is non-nil start a GAP process regardless of value of
     (unwind-protect
         (progn
           (with-output-to-temp-buffer "*GAP Help*"
-            (print-help-return-message))
+            (help-print-return-message))
           (setq gap-help-last-output-begin nil
                 gap-help-last-output-end nil
                 gap-help-continues 0)
