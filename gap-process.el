@@ -361,6 +361,19 @@ sending spaces to continue the output until finished."
     (goto-char (point-max))
     (insert string)
     (beginning-of-line)
+
+    ;; Handle "menus"
+    (save-excursion
+      (goto-char (point-min))
+      (when (re-search-forward
+             "WARNING: terminal is not fully functional"
+             nil t)
+        (delete-region (line-beginning-position) (line-end-position)))
+      (when (re-search-forward "(press RETURN)?" nil t)
+        (delete-region (line-beginning-position) (point))
+        (comint-send-string proc "\n")))
+
+    ;; Page through all the results
     (when (re-search-forward
            "  -- <space> page, <n> next line, <b> back, <p> back line, <q> quit --"
            nil t)                    ;;GEZ: Add to handle GAP 4.4.x output
@@ -392,7 +405,7 @@ sending spaces to continue the output until finished."
       ;; tell GAP to continue with next page (or not)
       (comint-send-string proc (if finished "q" " ")))
 
-    (when (looking-at (concat "^[ ]*" gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
+    (when (looking-at (concat "^[ ]*" gap-prompt-regexp "$"))                ;;GEZ: make sure get the end of it all
       (delete-region (point) (point-max))
       (gap-cleanup-help-buffer)
       (goto-char (point-min))
