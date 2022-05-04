@@ -32,7 +32,7 @@
 ;; adding (a properly modified version of)
 ;;
 ;;    (setq gap-executable "/path/to/gap"
-;;          gap-start-options '("-f" "-b" "-m" "2g"))
+;;          gap-start-options '("-E" "-f" "-b" "-m" "2g"))
 ;;
 ;; to your .emacs file.
 ;;
@@ -91,7 +91,7 @@
   :group 'gap
   :type 'file)
 
-(defcustom gap-start-options (list "-f" "-b" "-m" "2m")
+(defcustom gap-start-options (list "-E" "-f" "-b" "-m" "2m")
   "The list of initial GAP options.
 You may need to specify -f to force line editing."
   :group 'gap
