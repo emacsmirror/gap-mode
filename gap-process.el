@@ -192,6 +192,7 @@ This file will be loaded after GAP has successfully started up.")
 (defun gap-running-p ()
   "Return non-nil if GAP interpreter is running."
   (and gap-process-buffer
+       (buffer-live-p gap-process-buffer)
        (get-buffer-process gap-process-buffer)
        (eq (process-status (get-buffer-process gap-process-buffer))
            'run)))
