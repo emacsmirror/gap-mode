@@ -409,9 +409,9 @@ but is experimental."
     ;; I don't know what the different letters mean, so assume any are valid.
     ("^#\\([A-Z]\\)\\s +\\(.*\\)"
      (1 font-lock-warning-face t)
-     (2 'font-lock-doc-string-face t))
+     (2 'font-lock-doc-face t))
     ("^##\\s +\\(.*\\)"
-     1 'font-lock-doc-string-face t)
+     1 'font-lock-doc-face t)
 
     ;; These are for interactive gap use.  Technically should probably
     ;; only be for gap-process-mode, but they shouldn't show up in a
