@@ -416,7 +416,7 @@ sending spaces to continue the output until finished."
     (while (re-search-forward "\\\\$" nil t)
       (delete-region (1- (point)) (1+ (point)))
       (goto-char (point-min)))
-    (when (re-search-forward (concat "^GAP Help in \\(.*\\) with offset \\([0-9]+\\)$") nil t)                ;;GEZ: make sure get the end of it all
+    (when (re-search-forward "^GAP Help in \\(.*\\) with offset \\([0-9]+\\)$" nil t)                ;;GEZ: make sure get the end of it all
       (let ((help-file (match-string 1))
             (offset (string-to-number (match-string 2))))
         (insert-file-contents help-file nil nil nil t)
@@ -590,8 +590,8 @@ If ARG is non-nil start a GAP process regardless of value of
          (setq val (read-string "GAP topic: "))
        (setq val (read-string (format "GAP topic (default %s): "
                                       try-word)))
-       (if (string-equal val "")
-           (setq val try-word)))
+       (when (string-equal val "")
+         (setq val try-word)))
      (list val current-prefix-arg)))
   (let ((gap-auto-start-gap (or arg gap-auto-start-gap)))
     (ensure-gap-running))
