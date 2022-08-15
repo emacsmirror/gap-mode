@@ -750,7 +750,7 @@ well as those affecting behavior of `gap-indent-line'."
         (gap-indent-line)))))
 
 ;; TODO: This command seems schizophrenic
-(defun gap-format-region ()
+(defun gap-format-region (start end)
   "Indent all lines in the region or call `fill-paragraph'.
 
 If `gap-fill-if-gin' is non-nil, and point is in a comment, then
@@ -758,7 +758,7 @@ calls `fill-paragraph'.  The variable `gin-retain-indent-re' is
 used to ensure that indentation is preserved in this case.
 Otherwise calls `gap-indent-line' on each non-comment line and on
 each comment line if `gap-auto-indent-comments' is non-nil."
-  (interactive)
+  (interactive "r")
   ;; Make it compatible with gin-mode, in the sense that if gap-fill-if-gin
   ;; is true, and buffer is in gin-mode, and point is in comment, then do
   ;; fill paragraph instead of indenting region.
@@ -767,27 +767,21 @@ each comment line if `gap-auto-indent-comments' is non-nil."
            gin-mode
            (gap-point-in-comment))
       (fill-paragraph nil)
-    (let (ret p)
-      (if (> (point) (mark))
-          (exchange-point-and-mark))
-      (setq p (point))
+    (save-excursion
+      (goto-char start)
       (gap-indent-line)
-      (while (re-search-forward "[\n\C-m]" (end-of-line-from-point (mark)) t)
+      (while (re-search-forward "[\n\C-m]" (end-of-line-from-point end) t)
         (if (gap-looking-at "^[ \t]*[\n\C-m]")
             (indent-to-left-margin)
           (if (and (not gap-auto-indent-comments)
                    (gap-looking-at "^[ \t]*#"))
               nil
-            (gap-indent-line))))
-      (goto-char p)
-      (exchange-point-and-mark))))
+            (gap-indent-line)))))))
 
 (defun gap-format-buffer ()
   "Call `gap-format-region' on entire buffer."
   (interactive)
-  (set-mark (point-max))
-  (goto-char (point-min))
-  (gap-format-region))
+  (gap-format-region (point-min) (point-max)))
 
 (defun gap-insert-local-variables (&optional arg variables)
   "Insert a local variable statement for the current function.
