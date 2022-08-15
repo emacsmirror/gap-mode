@@ -5,7 +5,7 @@
 ;;	Goetz Pfeiffer
 ;;	Ivan Andrus <darthandrus@gmail.com>
 ;; Maintainer: Ivan Andrus <darthandrus@gmail.com>
-;; Version: 2.0.1
+;; Version: 2.1.0
 ;; Keywords: gap, comint
 ;; URL: https://gitlab.com/gvol/gap-mode
 
