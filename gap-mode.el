@@ -1,4 +1,4 @@
-;;; gap-mode.el --- Major mode for editing files in the GAP programing language.
+;;; gap-mode.el --- Major mode for editing files in the GAP programming language.
 ;;
 ;; Author: Michael Smith <smith@pell.anu.edu.au>
 ;;	Gary Zablackis
@@ -29,11 +29,13 @@
 ;;      (setq auto-mode-alist (apply 'list
 ;;                                   '("\\.g\\'" . gap-mode)
 ;;                                   '("\\.gap\\'" . gap-mode)
+;;                                   '("\\.gd\\'" . gap-mode)
+;;                                   '("\\.gi\\'" . gap-mode)
 ;;                                   auto-mode-alist))
 ;;
-;; Then visiting any file ending in ".g" or ".gap" will automatically put
-;; you in gap-mode.  Alternatively, to enter gap-mode at anytime, just type
-;;    M-x gap-mode
+;; Then visiting any file ending in ".g", ".gap", ".gi", or ".gd" will
+;; automatically put you in gap-mode.  Alternatively, to enter gap-mode at
+;; anytime, just type M-x gap-mode
 
 ;;; History:
 
