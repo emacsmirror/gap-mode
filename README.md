@@ -112,7 +112,7 @@ https://github.com/technomancy/package.el
 After that, you have to tell package.el to use MELPA, so add something like
 
     (setq package-archives
-          '(("melpa"     . "http://melpa.milkbox.net/packages/")
+          '(("melpa"     . "https://melpa.org/packages/")
             ("gnu"       . "http://elpa.gnu.org/packages/")))
     (package-initialize)
 
@@ -124,9 +124,9 @@ the future will allow you to easily updage gap-mode.
 Manual Installation
 -------------------
 
-Put the files  "gap-mode.el" and "gap-process.el" into a  directory in your
-Emacs lisp load path, and add  the following lines to your ".emacs" startup
-file.
+Put at least the files "gap-mode.el" and "gap-process.el" (and other *.el
+files if you wish to use their features) into a directory in your Emacs
+lisp load path, and add the following lines to your ".emacs" startup file.
 
     ;; gap mode
     (autoload 'gap-mode "gap-mode" "Gap editing mode" t)

@@ -22,8 +22,9 @@
 
 ;;; Install:
 
-;; Copy this file to somewhere in your load path, then put the
-;; following lines in your .emacs file:
+;; The easiest method of installation is of course via MELPA (see README).
+;; To install manually, copy the *.el files to somewhere in your load path,
+;; then put the following lines in your .emacs file:
 ;;
 ;;      (autoload 'gap-mode "gap-mode" "GAP editing mode" t)
 ;;      (setq auto-mode-alist (apply 'list

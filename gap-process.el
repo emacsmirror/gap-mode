@@ -22,7 +22,7 @@
 ;; Help is available at any time (that GAP is not busy) by pressing
 ;; "?".  Output is to *GAP Help* buffer.
 ;;
-;; To install, put this file somewhere in your load path, and add the
+;; To install, put the *.el files somewhere in your load path, and add the
 ;; following line to your .emacs:
 ;;
 ;;    (autoload 'gap "gap-process" "*Run GAP" t)
