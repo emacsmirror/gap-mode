@@ -215,8 +215,11 @@ buffer to the GAP session as initial standard input."
         (setq gap-pending-input
               (if have-input
                   (concat (if gap-mode-gaprc
-                              (format "Read(\"%s\");\n"
-                                      gap-mode-gaprc)
+                              (if (file-remote-p gap-directory)
+                                  (with-temp-buffer
+                                    (insert-file-contents gap-mode-gaprc)
+                                    (buffer-string))
+                                (format "Read(\"%s\");\n" gap-mode-gaprc))
                             nil)
                           (if send-buffer (buffer-string) nil))))
         (setq gap-pending-pointer 0)
