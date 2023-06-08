@@ -439,16 +439,18 @@ For format of ths variable see `font-lock-keywords'.")
     (define-key map "\M-\C-q" 'gap-format-buffer)
     (define-key map "\C-c#"   'comment-or-uncomment-region)
     ;; Inserting
-    (define-key map "\C-cl"   'gap-insert-local-variables)
-    (define-key map "\C-ca"   'gap-add-local-variable)
-    (define-key map "\C-cd"   'gap-insert-debug-print)
+    (define-key map "\C-c\C-l" 'gap-insert-local-variables)
+    (define-key map "\C-c\C-a" 'gap-add-local-variable)
+    (define-key map "\C-c\C-d" 'gap-insert-debug-print)
     ;; Marking and moving by blocks
     (define-key map "\C-c%"   'gap-match-group)
     ;; Interpreter
-    (define-key map [M-tab]   'gap-completion) ; Should probably use
+    (define-key map [M-tab]   'gap-completion)
     (define-key map "\M-?"    'gap-help)
     ;; Evaluating things in the interpreter
-    (define-key map "\C-ce"    'gap-eval-defun)
+    (define-key map "\C-\M-x"  'gap-eval-defun) ; same as elisp
+    (define-key map "\C-c\C-d" 'gap-eval-defun)
+    (define-key map "\C-x\C-e" 'gap-eval-last-statement) ; same as elisp
     (define-key map "\C-c\C-e" 'gap-eval-last-statement)
     (define-key map "\C-c\C-r" 'gap-eval-region)
     (define-key map "\C-c\C-b" 'gap-eval-buffer)
