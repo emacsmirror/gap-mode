@@ -1243,18 +1243,25 @@ new value is the one considered.
 
 If TERMINATE is non-nil don't check any further entries.")
 
-(defun gap-ident-around-point ()
+(defun gap-ident-around-point-pos ()
   "Return the identifier around the point as a string."
   (save-excursion
     (let (beg)
       (if (not (looking-at "\\(?:\\_>\\|\\s_\\|\\sw\\)"))
-          ""
+          nil
         (and (< (point) (point-max))
              (forward-char 1))
         (re-search-backward "\\_<" nil t)
         (setq beg (point))
         (re-search-forward "\\_>" nil t)
-        (buffer-substring beg (point))))))
+        (cons beg (point))))))
+
+(defun gap-ident-around-point ()
+  "Return the identifier around the point as a string."
+  (let* ((region (gap-ident-around-point-pos)))
+    (if region
+      (buffer-substring-no-properties (car region) (cdr region))
+      "")))
 
 (defun gap-point-in-comment-string ()
   "Return non-nil if point is inside a comment or string."
