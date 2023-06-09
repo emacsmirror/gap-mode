@@ -582,6 +582,7 @@ end;"
   (set (make-local-variable 'comment-start) "#")
   (setq indent-tabs-mode nil)
   (set (make-local-variable 'tab-stop-list) gap-tab-stop-list)
+  (add-hook 'completion-at-point-functions #'gap-completion-at-point-function nil t)
   ;; Use SMIE for indentation
   (setq gap-using-smie (and gap-use-smie
                             (require 'smie nil t)

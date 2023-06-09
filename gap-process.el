@@ -567,6 +567,62 @@ With FULL, send two TABs to GAP to get a full list of completions."
             (process-send-string process (concat gap-completion-ident
                                                  "\t\t\C-x")))))))
 
+(defun gap-capf-generate-completions (arg)
+  "Generate completions for ARG from a running GAP process."
+  ;; In particular, it fails with "HELP_VIEWER_INFO."
+  (when (string-match "[a-zA-Z0-9_]$" arg)
+    (ensure-gap-running)
+    ;; TODO: I should check that it's at a prompt
+    (setq gap-completion-ident arg)
+    (setq gap-completing-buffer (current-buffer))
+    (let ((process (get-buffer-process gap-process-buffer))
+          (prefix (progn (string-match "^\\(.*?\\)\\([a-zA-Z0-9_]+\\)$" arg)
+                         (match-string 1 arg)))
+          (completions nil))
+      (unwind-protect
+          (with-current-buffer (get-buffer-create "*GAP Company Completions*")
+            (erase-buffer)
+
+            (setq gap-send-state 'company-completing)
+            (set-process-filter process #'gap-capf-completions-filter)
+            ;; Send completion request and wait.
+            ;; I suspect there's a much better way to do this.
+            (process-send-string process (concat arg "\t\t\C-x"))
+            (while (eq gap-send-state 'company-completing)
+              (accept-process-output process 0.001))
+            ;; We finished completing, so extract all the completions.
+            (goto-char (point-min))
+            (while (re-search-forward "^ +\\(\\S +\\)$" nil t)
+              (setq completions (cons
+                                 (concat prefix (match-string 1))
+                                 completions)))
+            completions)))))
+
+(defun gap-capf-completions-filter (proc string)
+  "Filter all completions of a symbol into a buffer for company."
+  ;; (message "string: %s" string)
+  (with-current-buffer (get-buffer-create "*GAP CAPF Completions*")
+    (goto-char (point-max))
+    (insert (string-strip-chars string "\C-g\C-m\C-h"))
+    (beginning-of-line)
+    ;; We have all the completions since we see a prompt
+    (when (looking-at (concat gap-prompt-regexp ".*"
+                              gap-completion-ident ".*"
+                              (make-string (length gap-completion-ident) ?\ )))
+      ;; Delete the prompt
+      (delete-region (point) (point-max))
+      ;; Return to normal output
+      (set-process-filter proc 'gap-output-filter)
+      (setq gap-send-state 'normal))))
+
+(defun gap-completion-at-point-function ()
+  (let ((region (gap-ident-around-point-pos)))
+    (when region
+      (list (car region)
+            (cdr region)
+            (completion-table-dynamic #'gap-capf-generate-completions)
+            :exclusive nil))))
+
 (defun ensure-gap-running (&optional noerr)
   "Ensure that a GAP process is running, or throw an error.
 If `gap-auto-start-gap' is non-nil then start a new process if
