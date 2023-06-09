@@ -2,7 +2,7 @@ ev;;; gap-flymake.el --- Flymake support for the GAP programming language.  -*- 
 ;;
 ;; Author: Ivan Andrus <darthandrus@gmail.com>
 ;; Maintainer: Ivan Andrus <darthandrus@gmail.com>
-;; Version: 2.1.0
+;; Version: 2.2.0
 ;; Keywords: gap flymake
 ;; URL: https://gitlab.com/gvol/gap-mode
 
