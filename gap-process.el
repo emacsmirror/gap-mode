@@ -5,7 +5,7 @@
 ;;	Goetz Pfeiffer
 ;;	Ivan Andrus <darthandrus@gmail.com>
 ;; Maintainer: Ivan Andrus <darthandrus@gmail.com>
-;; Version: 2.2.0
+;; Version: 2.2.1
 ;; Keywords: gap, comint
 ;; URL: https://gitlab.com/gvol/gap-mode
 
@@ -215,7 +215,7 @@ buffer to the GAP session as initial standard input."
         (setq gap-pending-input
               (if have-input
                   (concat (if gap-mode-gaprc
-                              (if (file-remote-p gap-directory)
+                              (if (and gap-directory (file-remote-p gap-directory))
                                   (with-temp-buffer
                                     (insert-file-contents gap-mode-gaprc)
                                     (buffer-string))
