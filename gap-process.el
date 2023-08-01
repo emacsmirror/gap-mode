@@ -580,7 +580,7 @@ With FULL, send two TABs to GAP to get a full list of completions."
                          (match-string 1 arg)))
           (completions nil))
       (unwind-protect
-          (with-current-buffer (get-buffer-create "*GAP Company Completions*")
+          (with-current-buffer (get-buffer-create "*GAP CAPF Completions*")
             (erase-buffer)
 
             (setq gap-send-state 'company-completing)
