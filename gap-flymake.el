@@ -1,4 +1,4 @@
-ev;;; gap-flymake.el --- Flymake support for the GAP programming language.  -*- lexical-binding: t; -*-
+;;; gap-flymake.el --- Flymake support for the GAP programming language.  -*- lexical-binding: t; -*-
 ;;
 ;; Author: Ivan Andrus <darthandrus@gmail.com>
 ;; Maintainer: Ivan Andrus <darthandrus@gmail.com>
