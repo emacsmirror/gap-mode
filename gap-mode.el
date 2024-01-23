@@ -990,12 +990,12 @@ unchanged to `gap-complete' or `dabbrev-expand'."
   "Find matching delimiter in GAP.
 If point is on a character with bracket syntax, then use
 `forward-list' to find matching bracket.  Otherwise, check to see
-if point is on the first character of 'while', 'for', 'repeat',
-'until', 'do', 'od', 'if', 'elif', 'else', 'fi', 'function', or
-'end'.  If it is, jump to the matching delimiter."
+if point is on the first character of while, for, repeat,
+until, do, od, if, elif, else, fi, function, or
+end.  If it is, jump to the matching delimiter."
   (interactive)
-  (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1) t)
-        ((looking-at "\\s\)") (forward-char 1) (backward-list 1) t)
+  (cond ((looking-at "\\s(") (forward-list 1) (backward-char 1) t)
+        ((looking-at "\\s)") (forward-char 1) (backward-list 1) t)
         ((not (gap-point-in-comment-string))
          (cond ((looking-at "\\<if\\>")
                 (goto-char (match-end 0))
@@ -1384,7 +1384,7 @@ were at that buffer position."
 (defun gap-looking-at (s)
   "Like `looking-at', but accounts for selective display (^M)."
   (save-excursion
-    (if (eq (substring s 0 1) "^")
+    (if (string-equal (substring s 0 1) "^")
         (progn
           (setq s (concat "[\n\C-m]" (substring s 1)))
           (forward-char -1)))
@@ -1659,7 +1659,7 @@ not signal errors.
 If MOVE is non-nil move point to the buffer position returned by
 evaluating MOVE after each search.  This is for moving to the
 beginning or end of groups in the regexp, e.g. use
-'(match-beginning 0).
+\='(match-beginning 0).
 
 The search skips matches occurring in comments or strings."
   (let ((done nil)
