@@ -590,6 +590,7 @@ end;"
   (when gap-using-smie
     (defvar gap-smie-grammar)
     (declare-function gap-smie-rules "gap-smie")
+    (declare-function smie-setup "smie")
     (smie-setup gap-smie-grammar #'gap-smie-rules)))
 
 ;;}}}
