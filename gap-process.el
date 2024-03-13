@@ -122,7 +122,7 @@ or t, then always make the completions list double columnes."
   :group 'gap
   :type '(choice (const :tag "Never use double columns" nil)
                  (const :tag "Sometimes use double columns" t)
-                 (other :tag "Always use double columns" 'always)))
+                 (other :tag "Always use double columns" always)))
 
 (defcustom gap-auto-start-gap nil
   "If non-nil, automatially start an interpreter when required.
@@ -307,9 +307,9 @@ it (using `gap-prompt-regexp')."
   "Filter the output from a GAP process most of the time.
 It depends on the variable `gap-send-state' to determine which of three
 possible output states GAP is in:
-    'normal for output that should be shown;
-    'echo for the GAP echoing of the last command (suppressed);
-    'completing when GAP will be trying to complete a symbol before point."
+    \\='normal for output that should be shown;
+    \\='echo for the GAP echoing of the last command (suppressed);
+    \\='completing when GAP will be trying to complete a symbol before point."
   (let ((cbuf (current-buffer)))
     (cond
      ((eq gap-send-state 'normal)
