@@ -821,7 +821,7 @@ Formatting of the local statement is determined by
         (regenerate (if arg
                         (not gap-regenerate-local-statements)
                       gap-regenerate-local-statements))
-        p1 p2 name)
+        p2 name)
     ;; Find variables unless passed in
     (unless names
       (save-excursion
@@ -1458,7 +1458,7 @@ This is a subr in Emacs 19."
 
       ;; First check if this is a continued line and handle that.
       (if (setq ind (gap-calc-continued-stmt
-                     this-stmt this-beg this-end pos))
+                     this-stmt this-beg pos))
           ind
 
         ;; Not a continued line. Find the previous statement.
@@ -1473,15 +1473,12 @@ This is a subr in Emacs 19."
                          (buffer-substring last-beg last-end)))
 
         ;; Now find the indentation
-        (setq ind (gap-calc-new-stmt
-                   this-stmt this-beg this-end
-                   last-stmt last-beg last-end)))
+        (setq ind (gap-calc-new-stmt this-stmt last-stmt last-beg)))
 
       ;; return the indentation
       ind)))
 
-(defun gap-calc-new-stmt (this-stmt this-beg this-end
-                          last-stmt last-beg last-end)
+(defun gap-calc-new-stmt (this-stmt last-stmt last-beg)
   "Find indentation for a new statement in GAP."
   (let ((ind 0)
         base)
@@ -1495,8 +1492,7 @@ This is a subr in Emacs 19."
         (setq ind (- ind gap-indent-step)))
 
     ;; We are at the beginning of the previous line
-    (let ((p (point))
-          (last-was-decr nil)
+    (let ((last-was-decr nil)
           (more-than-one-command-on-last-line nil))
       (goto-char last-beg)
       ;; Increment/decrement for all statements on the previous line
@@ -1538,7 +1534,7 @@ This is a subr in Emacs 19."
     ind))
 
 
-(defun gap-calc-continued-stmt (this-stmt this-beg this-end pos)
+(defun gap-calc-continued-stmt (this-stmt this-beg pos)
   "Calculate indentation for a statement which is continued from the previous line."
   ;; now check to see if we have a continued line or not
   (save-excursion
@@ -1701,7 +1697,6 @@ found, simply return nil."
         (inc breg)  ;; Everytime we see this, increment counter
         (dec ereg)  ;; Everytime we see this, decrement counter
         (c 1)
-        (d t) ;; d=t => direction forward
         (p1 (point)))
     (cond ((eq forw nil)
            (cond ((or (looking-at breg) (and also (looking-at also)))
@@ -1710,14 +1705,12 @@ found, simply return nil."
                   (setq p1 (match-beginning 0))
                   (setq searcher 're-search-backward
                         inc ereg
-                        dec breg
-                        d nil))))
+                        dec breg))))
           ((eq forw -1)
            (setq p1 (point))
            (setq searcher 're-search-backward
                  inc ereg
-                 dec breg
-                 d nil)))
+                 dec breg)))
     (goto-char p1)
     (while (and (> c 0) (apply searcher (concat "\\(" breg "\\|" ereg
                                                 (if also "\\|") also "\\)")
