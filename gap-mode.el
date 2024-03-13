@@ -588,6 +588,8 @@ end;"
                             (require 'smie nil t)
                             (require 'gap-smie nil t)))
   (when gap-using-smie
+    (defvar gap-smie-grammar)
+    (declare-function gap-smie-rules "gap-smie")
     (smie-setup gap-smie-grammar #'gap-smie-rules)))
 
 ;;}}}
