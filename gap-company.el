@@ -2,7 +2,7 @@
 ;;
 ;; Author: 	Ivan Andrus <darthandrus@gmail.com>
 ;; Maintainer: Ivan Andrus <darthandrus@gmail.com>
-;; Version: 2.2.0
+;; Version: 2.2.2
 ;; Keywords: gap, company
 ;; URL: https://gitlab.com/gvol/gap-mode
 ;; Package-Requires: ((company))
