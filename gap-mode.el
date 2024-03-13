@@ -1,4 +1,4 @@
-;;; gap-mode.el --- Major mode for editing files in the GAP programming language.
+;;; gap-mode.el --- Major mode for editing files in the GAP programming language. -*- lexical-binding: t -*-
 ;;
 ;; Author: Michael Smith <smith@pell.anu.edu.au>
 ;;	Gary Zablackis

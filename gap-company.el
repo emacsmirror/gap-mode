@@ -1,4 +1,4 @@
-;;; gap-company.el --- Use a GAP process as a company back end
+;;; gap-company.el --- Use a GAP process as a company back end -*- lexical-binding: t -*-
 ;;
 ;; Author: 	Ivan Andrus <darthandrus@gmail.com>
 ;; Maintainer: Ivan Andrus <darthandrus@gmail.com>

@@ -1,4 +1,4 @@
-;;; gap-process.el --- Run a GAP session in Emacs
+;;; gap-process.el --- Run a GAP session in Emacs -*- lexical-binding: t -*-
 ;;
 ;; Author: Michael Smith <smith@pell.anu.edu.au>
 ;;	Gary Zablackis
