@@ -557,15 +557,13 @@ With FULL, send two TABs to GAP to get a full list of completions."
                                                "\t\C-x")))
 
       (setq gap-send-state 'normal)
-      (unwind-protect
-          (progn
-            (with-output-to-temp-buffer "*Completions*"
-              (let ((buffer-read-only nil))
-                (help-print-return-message)))
-            (setq gap-completing-buffer (current-buffer))
-            (set-process-filter process 'gap-completions-filter)
-            (process-send-string process (concat gap-completion-ident
-                                                 "\t\t\C-x")))))))
+      (with-output-to-temp-buffer "*Completions*"
+        (let ((buffer-read-only nil))
+          (help-print-return-message)))
+      (setq gap-completing-buffer (current-buffer))
+      (set-process-filter process 'gap-completions-filter)
+      (process-send-string process (concat gap-completion-ident
+                                           "\t\t\C-x")))))
 
 (defun gap-capf-generate-completions (arg)
   "Generate completions for ARG from a running GAP process."
@@ -579,24 +577,23 @@ With FULL, send two TABs to GAP to get a full list of completions."
           (prefix (progn (string-match "^\\(.*?\\)\\([a-zA-Z0-9_]+\\)$" arg)
                          (match-string 1 arg)))
           (completions nil))
-      (unwind-protect
-          (with-current-buffer (get-buffer-create "*GAP CAPF Completions*")
-            (erase-buffer)
+      (with-current-buffer (get-buffer-create "*GAP CAPF Completions*")
+        (erase-buffer)
 
-            (setq gap-send-state 'company-completing)
-            (set-process-filter process #'gap-capf-completions-filter)
-            ;; Send completion request and wait.
-            ;; I suspect there's a much better way to do this.
-            (process-send-string process (concat arg "\t\t\C-x"))
-            (while (eq gap-send-state 'company-completing)
-              (accept-process-output process 0.001))
-            ;; We finished completing, so extract all the completions.
-            (goto-char (point-min))
-            (while (re-search-forward "^ +\\(\\S +\\)$" nil t)
-              (setq completions (cons
-                                 (concat prefix (match-string 1))
-                                 completions)))
-            completions)))))
+        (setq gap-send-state 'company-completing)
+        (set-process-filter process #'gap-capf-completions-filter)
+        ;; Send completion request and wait.
+        ;; I suspect there's a much better way to do this.
+        (process-send-string process (concat arg "\t\t\C-x"))
+        (while (eq gap-send-state 'company-completing)
+          (accept-process-output process 0.001))
+        ;; We finished completing, so extract all the completions.
+        (goto-char (point-min))
+        (while (re-search-forward "^ +\\(\\S +\\)$" nil t)
+          (setq completions (cons
+                             (concat prefix (match-string 1))
+                             completions)))
+        completions))))
 
 (defun gap-capf-completions-filter (proc string)
   "Filter all completions of a symbol into a buffer for company."
@@ -655,15 +652,13 @@ If ARG is non-nil start a GAP process regardless of value of
   (let ((gap-auto-start-gap (or arg gap-auto-start-gap)))
     (ensure-gap-running))
   (let ((process (get-buffer-process gap-process-buffer)))
-    (unwind-protect
-        (progn
-          (with-output-to-temp-buffer "*GAP Help*"
-            (help-print-return-message))
-          (setq gap-help-last-output-begin nil
-                gap-help-last-output-end nil
-                gap-help-continues 0)
-          (set-process-filter process 'gap-help-filter)
-          (process-send-string process (concat "?" topic "\n"))))))
+    (with-output-to-temp-buffer "*GAP Help*"
+      (help-print-return-message))
+    (setq gap-help-last-output-begin nil
+          gap-help-last-output-end nil
+          gap-help-continues 0)
+    (set-process-filter process 'gap-help-filter)
+    (process-send-string process (concat "?" topic "\n"))))
 
 (defun get-start-process (progm &optional name dir args startfile)
   "Run program PROGM in buffer *NAME* (or if NAME is nil use *PROGM*).
