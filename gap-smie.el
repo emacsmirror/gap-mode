@@ -76,6 +76,12 @@
 (defun gap-smie-rules (kind token)
   "SMIE indentation rules for the GAP language.
 See `smie-rules-function' for meaning of KIND and TOKEN."
+  (require 'gap-mode)
+  (eval-when-compile
+    ;; These are defined in gap-mode which depends on this file
+    (defvar gap-debug-indent)
+    (defvar gap-indent-list)
+    (defvar gap-indent-step))
   (when (and gap-debug-indent
              (not (use-region-p)))
     (message "%s %s" kind token))
