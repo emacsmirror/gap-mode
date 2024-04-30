@@ -22,7 +22,7 @@
 
 (defun company-gap-backend (command &optional arg &rest ignored)
   (interactive (list 'interactive))
-
+  (ignore ignored)
   (cl-case command
     (interactive (company-begin-backend 'company-gap-backend))
 
