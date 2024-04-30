@@ -260,6 +260,8 @@ which is much like GAP's C-l (\\[recenter] can be used to recenter)."
   (set (make-local-variable 'paragraph-separate) "\\'")
   (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
   (require 'gap-mode) ;; for gap-syntax-table and gap-font-lock-keywords
+  (eval-when-compile
+    (defvar gap-syntax-table))
   (set-syntax-table gap-syntax-table)
   (set (make-local-variable 'font-lock-defaults) '(gap-font-lock-keywords))
   (use-local-map gap-process-map)
@@ -548,6 +550,7 @@ With FULL, send two TABs to GAP to get a full list of completions."
     (if (not (looking-at "\\_>"))
         (if (not (re-search-forward "\\_>" nil t))
             (error "Complete what?")))
+    (declare-function gap-ident-around-point "gap-mode")
     (setq gap-completion-ident (gap-ident-around-point))
     (if (not full)
         (progn
@@ -613,6 +616,7 @@ With FULL, send two TABs to GAP to get a full list of completions."
       (setq gap-send-state 'normal))))
 
 (defun gap-completion-at-point-function ()
+  (declare-function gap-ident-around-point-pos "gap-mode")
   (let ((region (gap-ident-around-point-pos)))
     (when region
       (list (car region)
